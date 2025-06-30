@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv  from 'dotenv';
 import connectDB from './config/db.js';
+import authRoutes from './routes/api/authRoutes.js';
 
 
 dotenv.config();
@@ -12,6 +13,7 @@ connectDB();
 // Init Middleware to parse JSON requests
 app.use(express.json());
 
+app.use('/api/auth', authRoutes); // Use auth routes
 // Import routes
 
 app.get('/', (req, res) => {

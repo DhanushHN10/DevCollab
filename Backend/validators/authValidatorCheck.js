@@ -1,5 +1,6 @@
-import { check } from "express-validator";
-import  User  from "../../models/User.js";
+import { check,validationResult } from "express-validator";
+// import  User  from "../models/User.js";
+import User from "../models/User.js";
 
 const signupValidator = [
   check("name", "Name is required").notEmpty(),
@@ -24,4 +25,18 @@ const signupValidator = [
     .withMessage("Password must contain at least one special character"),
 ];
 
-export default signupValidator; 
+
+
+const signupValidateRequest= (req,res,next) =>{
+  const errors= validationResult(req);
+
+  if(!errors.isEmpty()){
+    return res.status(400).json({
+      errors: errors.array(),
+    });
+
+  }
+  next();
+};
+
+export default {signupValidator , signupValidateRequest}; 
