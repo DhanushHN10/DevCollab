@@ -90,7 +90,7 @@ export const completeProfile = async (req,res) =>{
     }
 
 };
-export const updateprofile = async (req, res) => {
+export const updateProfile = async (req, res) => {
         try {
             const updates= req.body;
 

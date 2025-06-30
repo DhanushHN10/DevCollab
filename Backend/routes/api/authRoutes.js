@@ -1,40 +1,51 @@
 import express from "express";
-// import {check, validationResult} from "express-validator";
-// import {User} from "../../models/User.js";
 import authValidator from "../../validators/authValidatorCheck.js";
+import {signup, login, completerofile, updateProfile,getMe} from "../../controllers/authController.js";
+
+import { protect} from "../../middleware/protect.js";
+import { completeProfile } from "../../../controllers/authController.js";
+
 
 const { signupValidator, signupValidateRequest } = authValidator;
 // import gravatar from "gravatar";
 
-const router = express.Router();
+    const router = express.Router();
 
 // @ route /api/auth/signup
 // @ desc Register/ Signup a new User
 // @acess Public
-router.post("/signup",signupValidator,signupValidateRequest, (res,req) =>{
-  res.send("User registered succesfully..");
-});
+      router.post("/signup",signupValidator,signupValidateRequest, signup);
+
+// @ route /api/auth/complete-profile
+// @ desc Complete User Profile for the first time after user signup for non OAuth users
+// @access Private
+
+          
+      router.put("/complete-profile",protect,completeProfile);
 
 // @ route /api/auth/login
 // @ desc Login for the User
 // @access Public
-// router.post("/login", login);
+          router.post("/login", login);
 
-// // router.post('/logout',logout);
+// @ route /api/auth/edit-profile
+// @ desc User can Update/Edit their Profile
+// @access Private
+
+          router.put('/edit-profile', protect, updateProfile);
+// router.post('/logout',logout);   // Implement the Logout part later
 
 // // @ route /api/auth/google
 // // @ desc Google OAuth
 // // @access Public
-// router.post("/oauth/google", googleOAuth);
+            // router.post("/oauth/google", googleOAuth);
 
 // Protected route to get user details
 // @ route /api/auth/me
 // @ desc Get current user details
 // @access Private
 
-router.get("/me", (req, res) => {
-  res.send("User details...");
-});
+          router.get("/me", protect, getMe);
 
 
 export default router;
