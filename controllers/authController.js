@@ -161,3 +161,9 @@ export const updateProfile = async (req, res) => {
         res.status(200).jason({user:req.user});
     }
  
+
+    export const googleOAuth = (req,res) =>{
+        const token = generateAuthToken(req.user._id);
+        const redirectPath = req.user.profileCompleted?'dashboard':'complete-profile';
+        res.dedirect(`${process.env.CLIENT_REDIRECT_URL}/${redirectPath}?token=${token}`);
+    }

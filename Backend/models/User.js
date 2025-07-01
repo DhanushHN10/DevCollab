@@ -22,8 +22,11 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
-      select: false, // Don't return password by default
+      select: false,
+      required: function () {
+        return !this.isOAuthUser;
+        
+      } 
     },
     // date: {
     //   type: Date,
@@ -77,6 +80,19 @@ const UserSchema = new mongoose.Schema(
     {
       type: Boolean,
       default: false, 
+    },
+
+    googleId:{
+      type:String,
+      unique:true,
+      sparse: true // Allows for unique constraint to be applied only when the field is present
+    
+
+    },
+
+    isOAuthUser:{
+      type:Boolean,
+      default: false
     }
 
 

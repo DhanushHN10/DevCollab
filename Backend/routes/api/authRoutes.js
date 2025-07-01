@@ -4,6 +4,8 @@ import {signup, login, completerofile, updateProfile,getMe} from "../../controll
 
 import { protect} from "../../middleware/protect.js";
 import { completeProfile } from "../../../controllers/authController.js";
+import passport from "passport";
+import { googleOAuth}    from "../../../controllers/authController.js";
 
 
 const { signupValidator, signupValidateRequest } = authValidator;
@@ -39,6 +41,24 @@ const { signupValidator, signupValidateRequest } = authValidator;
 // // @ desc Google OAuth
 // // @access Public
             // router.post("/oauth/google", googleOAuth);
+
+
+            router.get('/oauth/google',
+                  passport.authenticate('google',{
+                      
+                        scope:['profile','email'],
+                        session:false
+                  })
+            );
+
+            router.get('/oauth/google/callback',
+                  passport.authenticate('google',{
+                        session:false,
+                        failureRedirect: `${process.env.CLIENT_REDIRECT_URL}/login`,
+                        failureMessage:" Attempt failed. Try again.."
+                  }),
+                  googleOAuth
+            );
 
 // Protected route to get user details
 // @ route /api/auth/me
