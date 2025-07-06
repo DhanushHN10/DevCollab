@@ -1,6 +1,6 @@
 import argon2 from 'argon2';
 import User from '../models/User.js';
-import { generateAuthToken } from '../Backend/utils/authGenerationToken.js';
+import { generateAuthToken } from '../utils/authGenerationToken.js';
 
 
 export const signup = async (req,res) =>{

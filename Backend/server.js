@@ -3,7 +3,9 @@ import dotenv  from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/api/authRoutes.js';
 import passport from 'passport';
-import './config/passport.js';  // Our passport configuration
+import './config/passport.js';  // Passport configuration
+
+import projectRoutes from './routes/api/projectRoutes.js'; 
 
 
 dotenv.config();
@@ -22,6 +24,9 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes); // Use auth routes
 // Import routes
+
+
+app.use('/api/projects', projectRoutes); 
 
 app.get('/', (req, res) => {
     res.send('DevCollab API is running...');

@@ -3,9 +3,9 @@ import authValidator from "../../validators/authValidatorCheck.js";
 import {signup, login, completerofile, updateProfile,getMe} from "../../controllers/authController.js";
 
 import { protect} from "../../middleware/protect.js";
-import { completeProfile } from "../../../controllers/authController.js";
+import { completeProfile } from "../../controllers/authController.js";
 import passport from "passport";
-import { googleOAuth}    from "../../../controllers/authController.js";
+import { googleOAuth}    from "../../controllers/authController.js";
 
 
 const { signupValidator, signupValidateRequest } = authValidator;
