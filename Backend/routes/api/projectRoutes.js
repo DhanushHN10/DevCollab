@@ -5,7 +5,8 @@ import {
     createProject,
     getMyProjects,
     getMyCollaboratedProjects,
-    searchProjects
+    searchProjects,
+    getWorkspace
 } from '../../controllers/projectController';
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.get('/my-projects',protect, getMyProjects);
 router.get('/my-collabs', protect, getMyCollaboratedProjects);
 
 router.get('/search',protect, searchProjects);
+router.get('/:id/workspace',protect,getWorkspace);
 
 export default router;
 
