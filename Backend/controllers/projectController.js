@@ -145,11 +145,11 @@ export const searchProjects = async (req, res) => {
 export const getWorkspace = async (req, res) => {
 
     try {
-        const projecId = req.params.id;
+        const projectId = req.params.projectId;
 
         const project = await Project.findById(projectId).select('title');
 
-        if(!projectId)
+        if(!project)
         {
             return res.status(404).json({
                 message: "Project not found",
@@ -164,6 +164,12 @@ export const getWorkspace = async (req, res) => {
             return res.status(404).json({
                 message:"Workspace not found"
             });
+        }
+
+
+        const isMember = workspace.members.some(m => m.user._id.equals(req.user._id));
+        if (!isMember) {
+            return res.status(403).json({ message: "You are not a member of this workspace" });
         }
 
 

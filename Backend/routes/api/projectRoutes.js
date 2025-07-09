@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect } from '../../middleware/protect';
+import { searchDevelopers } from '../../controllers/workspaceController';
 
 import {
     createProject,
@@ -19,7 +20,10 @@ router.get('/my-projects',protect, getMyProjects);
 router.get('/my-collabs', protect, getMyCollaboratedProjects);
 
 router.get('/search',protect, searchProjects);
-router.get('/:id/workspace',protect,getWorkspace);
+router.get('/:projectId/workspace',protect,getWorkspace);
+
+
+router.get('/:projectId/workspace/search-developers',protect, searchDevelopers);
 
 export default router;
 
