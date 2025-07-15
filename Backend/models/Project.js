@@ -27,21 +27,21 @@ const projectSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
-  requests: [
-    {
-      user: { type: mongoose.SchemaTypes.ObjectId, ref: "User" },
-      message: String,
-      status: {
-        type: String,
-        enum: ["pending", "accepted", "rejected"],
-        default: "pending",
-      },
-      requestedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    }
-  ],
+  // requests: [
+  //   {
+  //     user: { type: mongoose.SchemaTypes.ObjectId, ref: "User" },
+  //     message: String,
+  //     status: {
+  //       type: String,
+  //       enum: ["pending", "accepted", "rejected"],
+  //       default: "pending",
+  //     },
+  //     requestedAt: {
+  //       type: Date,
+  //       default: Date.now,
+  //     },
+  //   }
+  // ],
 
   createdAt:{
     type: Date,
@@ -51,7 +51,22 @@ const projectSchema = new mongoose.Schema({
   isAcceptingDevs:{
     type:boolean,
     default:true
-  }
+  },
+
+  joinRequests: [
+   {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref:'User'
+   } 
+  ],
+
+  pendingInvites:[
+    {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'User'
+    }
+
+  ]
 
 });
 

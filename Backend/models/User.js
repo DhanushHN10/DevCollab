@@ -95,10 +95,6 @@ const UserSchema = new mongoose.Schema(
       default: false
     }
 
-
-
-
-
     // Add personal information fields as needed
   },
   
