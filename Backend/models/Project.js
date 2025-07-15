@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-await import("mongoose-type-url");
+await import('mongoose-type-url');
 
 const projectSchema = new mongoose.Schema({
   title: {

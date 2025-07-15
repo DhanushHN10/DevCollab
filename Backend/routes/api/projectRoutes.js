@@ -1,6 +1,6 @@
 import express from 'express';
-import { protect } from '../../middleware/protect';
-import { searchDevelopers } from '../../controllers/workspaceController';
+import { protect } from '../../middleware/protect.js';
+import { searchDevelopers } from '../../controllers/workspaceController.js';
 import {
     createProject,
     getMyProjects,
@@ -19,9 +19,9 @@ import {
     rejectProjectInvite,
     cancelJoinRequest
 
-} from '../../controllers/projectController'
+} from '../../controllers/projectController.js'
 
-import { checkProjectMembership } from '../../middleware/checkPrijectMember';
+import { checkProjectMembership } from '../../middleware/checkPrijectMember.js';
 
 const router = express.Router();
 

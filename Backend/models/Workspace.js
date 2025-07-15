@@ -1,4 +1,4 @@
-import mangoose, { mongo } from 'mongoose';
+import mongoose, { mongo } from 'mongoose';
 
 
 const workspaceSchema = new mongoose.Schema({

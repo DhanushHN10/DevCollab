@@ -1,9 +1,9 @@
 import express from "express";
 import authValidator from "../../validators/authValidatorCheck.js";
-import {signup, login, completerofile, updateProfile,getMe} from "../../controllers/authController.js";
+import {signup, login, completeProfile, updateProfile,getMe} from "../../controllers/authController.js";
 
 import { protect} from "../../middleware/protect.js";
-import { completeProfile } from "../../controllers/authController.js";
+// import { completeProfile } from "../../controllers/authController.js";
 import passport from "passport";
 import { googleOAuth}    from "../../controllers/authController.js";
 

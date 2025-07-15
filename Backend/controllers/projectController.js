@@ -1,6 +1,6 @@
-import Project from "../models/Project";
-import Workspace from "../models/Workspace";
-import { addUserToWorkSpace } from "./workspaceController";
+import Project from "../models/Project.js";
+import Workspace from "../models/Workspace.js";
+import { addUserToWorkSpace } from "./workspaceController.js";
 
 export const createProject = async(req,res) =>{
     try {
