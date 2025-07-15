@@ -1,14 +1,27 @@
 import express from 'express';
 import { protect } from '../../middleware/protect';
 import { searchDevelopers } from '../../controllers/workspaceController';
-
 import {
     createProject,
     getMyProjects,
     getMyCollaboratedProjects,
     searchProjects,
-    getWorkspace
-} from '../../controllers/projectController';
+    getWorkspace,
+    inviteToProject,
+    unsendInvite,
+    getCollabStatus,
+    acceptJoinRequest,
+    rejectJoinRequest,
+    getInvitesReceived,
+    getJoinRequestsSent,
+    requestToJoin,
+    acceptProjectInvite,
+    rejectProjectInvite,
+    cancelJoinRequest
+
+} from '../../controllers/projectController'
+
+import { checkProjectMembership } from '../../middleware/checkPrijectMember';
 
 const router = express.Router();
 
@@ -23,7 +36,38 @@ router.get('/search',protect, searchProjects);
 router.get('/:projectId/workspace',protect,getWorkspace);
 
 
-router.get('/:projectId/workspace/search-developers',protect, searchDevelopers);
+router.get('/:projectId/workspace/search-developers',protect,checkProjectMembership, searchDevelopers);
+
+router.post('/:projectId/invite/:userId',protect, checkProjectMembership,inviteToProject);
+
+router.get('/:projectId/collab-status', protect,checkProjectMembership, getCollabStatus);
+
+router.delete('/:projectId/invite/:unsendUserId',protect,checkProjectMembership, unsendInvite);
+
+router.put('/:projectId/request/accept/:acceptUserId',protect,checkProjectMembership, acceptJoinRequest);
+
+router.delete('/:projectId/request/reject/:userId', protect,checkProjectMembership, rejectJoinRequest);
+
+
+router.get('/my/invites',protect, getInvitesReceived);
+router.get('/my/requests',protect, getJoinRequestsSent);
+
+router.post('/:projectId/request',protect,requestToJoin);
+
+
+
+router.put('/my/invites/:projectId',protect, acceptProjectInvite);
+
+router.delete('/my/invites/:projectId',protect, rejectProjectInvite);
+
+router.delete('/my/requests/:projectId',protect, cancelJoinRequest);
+
+
+
+
+
+
+
 
 export default router;
 
