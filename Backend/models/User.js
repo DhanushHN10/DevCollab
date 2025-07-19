@@ -55,11 +55,12 @@ const UserSchema = new mongoose.Schema(
       type: [String],
       default: []
     },
-    availability:{
-        type: String,
-        default:"Not specified",
-        enum:["Available", "Not available", "Short-Term", "Long-Term"]
-    },
+   availability: {
+  type: String,
+  enum: ["Available", "Busy", "Looking for Projects", "Not specified"], // add this
+  default: "Not specified"
+},
+
 
     Role:
     {

@@ -1,75 +1,16 @@
-// import passport from 'passport';
-// // import {Stratergy as GoogleStratergy } from 'passport-google-oauth20';
-// import pkg from 'passport-google-oauth20';
-// const { Strategy: GoogleStrategy } = pkg;
-
-// import User from '../models/User.js';
-// // import dotenv from 'dotenv';
-
-// // dotenv.config();
-
-// passport.use(
-//     new GoogleStrategy(
-//         {
-//             clienID: process.env.GOOGLE_CLIENT_ID,
-//             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//             callbackURL: '/api/auth/google/callback'
-
-//         },
-
-//         async(acessToken,refreshToken,Profiler,done) =>{
-//             try {
-
-//                 const email=Profiler.emails[0].value;
-//                 let user= await User.findOne({googleId:profile.id});
-
-
-//                 if(!user)
-//                 {
-//                     const existingEmailUser = await User.findOne({email});
-
-//                     if(existingEmailUser)
-//                     {
-//                         return done(new Error("Email already exists with another Account"));
-
-//                     }
-
-//                     user = await User.create({
-//                         name:profile.displayName,
-//                         googleId:profile.id,
-//                         username:profile.displayname.toLowerCase().replace(/\s/g,""),
-//                         email,
-//                         isOAuthUser:true,
-//                         avatar:profile.photos[0].value,
-                        
-//                     });
-//                 }
-
-//                 done(null,user);
-
-                
-//             } catch (error) {
-                
-//                 done(error,null);
-//             }
-//         }
-//     )
-// )
-
-
+import dotenv  from 'dotenv';
+dotenv.config();
 import passport from 'passport';
 import pkg from 'passport-google-oauth20';
 const { Strategy: GoogleStrategy } = pkg;
-
 import User from '../models/User.js';
-
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,            
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: '/api/auth/google/callback',
+      callbackURL: 'http://localhost:5000/api/auth/oauth/google/callback'
     },
     async (accessToken, refreshToken, profile, done) => {  
       try {
@@ -103,3 +44,4 @@ passport.use(
     }
   )
 );
+

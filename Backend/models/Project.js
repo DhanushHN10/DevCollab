@@ -49,7 +49,7 @@ const projectSchema = new mongoose.Schema({
   },
 
   isAcceptingDevs:{
-    type:boolean,
+    type:Boolean,
     default:true
   },
 

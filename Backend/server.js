@@ -1,5 +1,9 @@
-import express from 'express';
 import dotenv  from 'dotenv';
+dotenv.config();
+import cors from 'cors';
+
+
+import express from 'express';
 import connectDB from './config/db.js';
 import authRoutes from './routes/api/authRoutes.js';
 import passport from 'passport';
@@ -8,14 +12,15 @@ import './config/passport.js';  // Passport configuration
 import projectRoutes from './routes/api/projectRoutes.js'; 
 
 
-dotenv.config();
-
-
 
 const app= express();
 const PORT = process.env.PORT || 5000;
 connectDB();
 
+app.use(cors({
+    origin:'http://localhost:5173'
+
+}))
 app.use(passport.initialize());
 
 
