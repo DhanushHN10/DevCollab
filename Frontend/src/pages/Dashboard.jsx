@@ -1,13 +1,16 @@
 import MainNavbar from "../tools/MainNavbar";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#0e0e0e] text-white pt-20 px-6">
       <MainNavbar />
 
       {/* Create Project Button */}
       <div className="flex justify-end mb-4 mt-10">
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow transition">
+        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow transition" onClick={()=> navigate("/create-project")}>
           Create Project
         </button>
       </div>

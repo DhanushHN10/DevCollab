@@ -43,16 +43,23 @@ export const signup = async (req, res) => {
 
 export const completeProfile = async (req, res) => {
   try {
-    const { links, skills, interests, availability, Bio, location } = req.body;
 
     const user = await User.findById(req.user._id);
+       if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (user.profileCompleted) {
+        if (user.profileCompleted) {
       return res.status(400).json({
         Error: 'Profile already completed',
+        
       });
     }
 
+
+    const { links, skills, interests, availability, Bio, location } = req.body;
+
+    
+
+   
     user.links = links;
     // user.avatar = avatar;
     user.skills = skills;

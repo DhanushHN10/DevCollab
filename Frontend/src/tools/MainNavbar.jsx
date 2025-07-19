@@ -291,8 +291,11 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
+import logout from "../utils/logout.js";
+import { useNavigate } from "react-router-dom";
 export default function MainNavbar() {
+  const navigate = useNavigate();
+  
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [avatarHovered, setAvatarHovered] = useState(false);
 
@@ -352,8 +355,9 @@ export default function MainNavbar() {
               👤 View Profile
             </Link>
             <button
+             onClick={() =>logout(navigate)}
               className="block w-full text-left px-4 py-2 hover:bg-white/10 hover:text-red-400 hover:pl-6 transition-all duration-200 rounded-b-xl"
-            >
+           >
               🚪 Logout
             </button>
           </div>

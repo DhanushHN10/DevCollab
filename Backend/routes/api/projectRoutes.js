@@ -17,7 +17,8 @@ import {
     requestToJoin,
     acceptProjectInvite,
     rejectProjectInvite,
-    cancelJoinRequest
+    cancelJoinRequest,
+    getProjectDetails
 
 } from '../../controllers/projectController.js'
 
@@ -62,6 +63,7 @@ router.delete('/my/invites/:projectId',protect, rejectProjectInvite);
 
 router.delete('/my/requests/:projectId',protect, cancelJoinRequest);
 
+router.get('/:projectId/overview',protect, checkProjectMembership, getProjectDetails)
 
 
 

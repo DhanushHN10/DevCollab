@@ -477,6 +477,44 @@ export const getJoinRequestsSent = async (req, res) => {
 
 
 
+export const getProjectDetails = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const project = await Project.findById(projectId)
+      .populate('createdBy', 'name username')
+      .populate('collaborators', 'name username avatar') 
+      .lean(); 
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const isOwner = project.createdBy._id.toString() === req.user._id.toString();
+
+    res.json({
+      project: {
+        _id: project._id,
+        title: project.title,
+        description: project.description,
+        tags: project.tags,
+        techStack: project.techStack,
+        createdBy: project.createdBy,
+        collaborators: project.collaborators,
+        pendingInvites: project.pendingInvites,
+        joinRequests: project.joinRequests,
+        createdAt: project.createdAt,
+      },
+      isOwner,
+    });
+  } catch (err) {
+    console.error("Error fetching project details:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
 
 
 

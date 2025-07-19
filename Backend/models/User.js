@@ -57,17 +57,17 @@ const UserSchema = new mongoose.Schema(
     },
    availability: {
   type: String,
-  enum: ["Available", "Busy", "Looking for Projects", "Not specified"], // add this
+  enum: ["Available", "Busy","Short-Term", "Looking for Projects", "Not specified"], // add this
   default: "Not specified"
 },
 
 
-    Role:
-    {
-      type: [String],
-      default:[]
+    // Role:
+    // {
+    //   type: [String],
+    //   default:[]
       
-    },
+    // },
 
     Bio:{
       type: String,

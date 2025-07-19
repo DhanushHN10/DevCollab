@@ -10,7 +10,7 @@ import LoginPage
 import CompleteProfilePage from "../pages/CompleteProfilePage";
 import Dashboard from "../pages/Dashboard";
 import ViewProfile from "../pages/ViewProfile";
-
+import CreateProjectPage from "../pages/CreateProjectPage"
 
  export const router = createBrowserRouter([
     {
@@ -38,6 +38,10 @@ import ViewProfile from "../pages/ViewProfile";
     {
         path:'/view-profile',
         element:<ViewProfile/>
+    },
+    {
+        path:'/create-project',
+        element:<CreateProjectPage/>
     }
 
 

@@ -38,6 +38,7 @@ const interestsOptions = [
   { label: "Web3", value: "Web3" },
   { label: "Cloud", value: "Cloud" },
   { label: "Open Source", value: "Open Source" },
+  { label: "Hackathons", value: "Hackathons" },
 ];
 
 export default function CompleteProfilePage() {
@@ -52,7 +53,7 @@ export default function CompleteProfilePage() {
     },
     skills: [],
     interests: [],
-    availability: "",
+    availability: "Not specified",
     Bio: "",
     location: "",
   });
@@ -127,7 +128,7 @@ const handleChange = (e) => {
       };
 
       const res = await fetch("/api/auth/complete-profile", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -237,9 +238,10 @@ const handleChange = (e) => {
             >
               <option value="">Select Availability</option>
               <option value="Available">Available</option>
-              <option value="Not available">Not available</option>
+              <option value="Busy">Busy</option>
               <option value="Short-Term">Short-Term</option>
-              <option value="Long-Term">Long-Term</option>
+              <option value="Looking for Projects">Looking for Projects</option>
+              <option value="Not specified">Not specified</option>
             </select>
 
             {/* Location & Bio */}
