@@ -1,88 +1,88 @@
-// File: components/SharedView/InviteRequests.jsx
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-export default function InviteRequests() {
-  const [invites, setInvites] = useState([]);
+export default function JoinRequestsSent() {
+  const [joinRequests, setJoinRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchInvites = async () => {
+    const fetchJoinRequests = async () => {
       try {
-        const res = await axios.get('/api/projects/my/invites', {
-          withCredentials: true,
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/api/projects/my/requests", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setInvites(res.data.invites);
-        setLoading(false);
+        setJoinRequests(res.data.requests);
       } catch (err) {
-        console.error('Failed to fetch invites', err);
-        setError('Failed to load invites');
+        console.error("Failed to fetch join requests sent", err);
+        setError("Failed to fetch join requests.");
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchInvites();
+    fetchJoinRequests();
   }, []);
 
-  const handleAccept = async (projectId) => {
+  const handleUnsend = async (projectId) => {
     try {
-      await axios.put(`/api/projects/my/invites/${projectId}`, {}, {
-        withCredentials: true,
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/projects/my/requests/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setInvites(prev => prev.filter(project => project._id !== projectId));
+      setJoinRequests((prev) =>
+        prev.filter((req) => req.projectId !== projectId)
+      );
     } catch (err) {
-      console.error('Failed to accept invite', err);
+      console.error("Failed to unsend join request", err);
+      setError("Failed to unsend join request.");
     }
   };
-
-  const handleReject = async (projectId) => {
-    try {
-      await axios.delete(`/api/projects/my/invites/${projectId}`, {
-        withCredentials: true,
-      });
-      setInvites(prev => prev.filter(project => project._id !== projectId));
-    } catch (err) {
-      console.error('Failed to reject invite', err);
-    }
-  };
-
-  if (loading) return <p className="text-white">Loading invites...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="text-white space-y-4">
-      {invites.length === 0 ? (
-        <p>No pending invites received.</p>
+    <div>
+      <h2 className="text-2xl font-semibold mb-4 text-white text-center">
+        Invites Received
+      </h2>
+
+      {loading ? (
+        <p className="text-gray-400 text-center">Loading...</p>
+      ) : error ? (
+        <p className="text-red-400 text-center">{error}</p>
+      ) : joinRequests.length === 0 ? (
+        <p className="text-gray-400 text-center">
+          You haven’t received any invites yet.
+        </p>
       ) : (
-        invites.map(project => (
-          <div
-            key={project._id}
-            className="bg-zinc-800 rounded-lg shadow-md p-4 flex flex-col sm:flex-row sm:items-center justify-between"
-          >
-            <div>
-              <h3 className="text-xl font-semibold">{project.title}</h3>
-              <p className="text-sm text-gray-300">By: {project.createdBy.name} (@{project.createdBy.username})</p>
-              <p className="text-sm text-gray-400">Tags: {project.tags?.join(', ')}</p>
-              <p className="text-sm text-gray-400">Tech Stack: {project.techStack?.join(', ')}</p>
-            </div>
-            <div className="mt-2 sm:mt-0 flex space-x-2">
-              <button
-                onClick={() => handleAccept(project._id)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-              >
-                Accept
-              </button>
-              <button
-                onClick={() => handleReject(project._id)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        ))
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[70vh] pr-2">
+          {joinRequests.map((req) => (
+            <Card
+              key={req.projectId}
+              className="bg-[#1c1c1c] text-white border border-white/10 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between"
+            >
+              <CardContent className="p-5">
+                <h3 className="text-lg font-semibold mb-1 truncate">
+                  {req.projectTitle || "Untitled Project"}
+                </h3>
+                <p className="text-sm text-gray-300 line-clamp-3 mb-4">
+                  {req.projectDescription || "No description available."}
+                </p>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleUnsend(req.projectId)}
+                  className="w-full"
+                >
+                  Unsend Request
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
 }
+
