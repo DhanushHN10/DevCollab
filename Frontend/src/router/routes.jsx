@@ -11,6 +11,7 @@ import CompleteProfilePage from "../pages/CompleteProfilePage";
 import Dashboard from "../pages/Dashboard";
 import ViewProfile from "../pages/ViewProfile";
 import CreateProjectPage from "../pages/CreateProjectPage"
+import ProjectPage from "../pages/ProjectPage/ProjectPage";
 
  export const router = createBrowserRouter([
     {
@@ -42,6 +43,10 @@ import CreateProjectPage from "../pages/CreateProjectPage"
     {
         path:'/create-project',
         element:<CreateProjectPage/>
+    },
+    {
+        path:'/project/:projectId',
+        element:<ProjectPage/>
     }
 
 
