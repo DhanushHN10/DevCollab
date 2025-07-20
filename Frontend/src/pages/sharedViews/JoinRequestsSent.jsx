@@ -16,7 +16,9 @@ export default function JoinRequestsSent() {
         const res = await axios.get("/api/projects/my/requests", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setJoinRequests(res.data || []);
+       
+
+        setJoinRequests(res.data.requests);
       } catch (err) {
         console.error("Failed to fetch join requests sent", err);
         setError("Failed to fetch join requests.");
