@@ -1,4 +1,3 @@
-// File: components/SharedView/MyCollaborations.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "../../components/ui/card";
