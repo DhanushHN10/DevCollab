@@ -1,6 +1,7 @@
-import { useEffect, useState, Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
-import MainNavbar from "../components/MainNavbar";
+import MainNavbar from "../tools/MainNavbar";
+// import { useState,useEffect } from "react";
 // import axios from "axios";
 
 const MyProjects = lazy(() => import("./sharedViews/MyProjects"));
@@ -17,7 +18,7 @@ const tabs = [
 
 export default function SharedView() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") || "projects";
+  const tab = searchParams.get("tabs") || "projects";
 
   const renderTabContent = () => {
     switch (tab) {
@@ -38,7 +39,9 @@ export default function SharedView() {
     <div className="min-h-screen bg-[#0e0e0e] text-white">
       <MainNavbar />
 
-      <div className="static top-16 z-10 bg-[#323030] py-3 px-4 rounded-xl shadow-md flex flex-wrap justify-center gap-3 mb-6 border border-white/10">
+      {/* <div className="static top-16 z-10 bg-[#323030] py-3 px-4 rounded-xl shadow-md flex flex-wrap justify-center gap-3 mb-6 border border-white/10"> */}
+      <div className="w-full px-6 pt-20">
+       <div className="static top-16 z-10 bg-[#323030] py-3 px-4 rounded-xl shadow-md flex flex-wrap justify-center gap-3 mb-6 border border-white/10">
         {tabs.map(({ label, value }) => (
           <button
             key={value}
@@ -47,7 +50,7 @@ export default function SharedView() {
                 ? "bg-white text-black shadow-md"
                 : "bg-black text-white hover:bg-white/10"
             }`}
-            onClick={() => setSearchParams({ tab: value })}
+            onClick={() => setSearchParams({ tabs: value })}
           >
             {label}
           </button>
@@ -59,6 +62,7 @@ export default function SharedView() {
           {renderTabContent()}
         </Suspense>
       </div>
+    </div>
     </div>
   );
 }
