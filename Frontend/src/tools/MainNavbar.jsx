@@ -22,8 +22,10 @@ export default function MainNavbar() {
         {/* Center Links */}
         <div className="space-x-6 hidden md:flex">
           <Link to="/dashboard" className="text-white hover:text-blue-400">Dashboard</Link>
-          <Link to="/my-projects" className="text-white hover:text-blue-400">My Projects</Link>
-          <Link to="/collaborations" className="text-white hover:text-blue-400">My Collaborations</Link>
+          <Link to="/project/shared-view?tabs=projects" className="text-white hover:text-blue-400">My Projects</Link>
+          <Link to="/project/shared-view?tabs=collabs" className="text-white hover:text-blue-400">My Collaborations</Link>
+          <Link to="/project/shared-view?tabs=invites" className="text-white hover:text-blue-400">Invites Received</Link>
+          <Link to="/project/shared-view?tabs=sent" className="text-white hover:text-blue-400">Sent Requestes</Link>
         </div>
 
         {/* Avatar + Dropdown */}
@@ -75,3 +77,5 @@ export default function MainNavbar() {
     </nav>
   );
 }
+
+
