@@ -12,6 +12,7 @@ import Dashboard from "../pages/Dashboard";
 import ViewProfile from "../pages/ViewProfile";
 import CreateProjectPage from "../pages/CreateProjectPage"
 import ProjectPage from "../pages/ProjectPage/ProjectPage";
+import SharedView from "../pages/SharedViewPage";
 
  export const router = createBrowserRouter([
     {
@@ -47,7 +48,12 @@ import ProjectPage from "../pages/ProjectPage/ProjectPage";
     {
         path:'/project/:projectId',
         element:<ProjectPage/>
-    }
+    },
+
+    {
+        path:'/project/shared-details',
+        element:<SharedView/>
+    },
 
 
  ]);
