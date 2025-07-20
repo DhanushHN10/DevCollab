@@ -47,7 +47,7 @@ import SharedView from "../pages/SharedViewPage";
     },
     
     {
-        path:'/project/shared-details',
+        path:'/project/shared-view',
         element:<SharedView/>
     },
     {
