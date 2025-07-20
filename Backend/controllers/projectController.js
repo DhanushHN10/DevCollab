@@ -40,7 +40,7 @@ export const createProject = async(req,res) =>{
             workspace: workspace
         });
     } catch (error) {
-        res.send(500).json({
+        res.status(500).json({
             message:"Server Error",
             error:error.message
         });
