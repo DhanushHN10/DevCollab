@@ -45,15 +45,16 @@ import SharedView from "../pages/SharedViewPage";
         path:'/create-project',
         element:<CreateProjectPage/>
     },
+    
+    {
+        path:'/project/shared-details',
+        element:<SharedView/>
+    },
     {
         path:'/project/:projectId',
         element:<ProjectPage/>
     },
 
-    {
-        path:'/project/shared-details',
-        element:<SharedView/>
-    },
 
 
  ]);
