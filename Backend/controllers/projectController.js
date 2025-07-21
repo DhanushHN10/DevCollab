@@ -480,6 +480,7 @@ export const getJoinRequestsSent = async (req, res) => {
 export const getProjectDetails = async (req, res) => {
   try {
     const { projectId } = req.params;
+    const userId= req.user._id;
 
     const project = await Project.findById(projectId)
       .populate('createdBy', 'name username')
@@ -491,7 +492,13 @@ export const getProjectDetails = async (req, res) => {
     }
 
     const isOwner = project.createdBy._id.toString() === req.user._id.toString();
+    const isMember= project.collaborators.some(
+      collaborators => collaborators._id.toString() === userId.toString());
+    
 
+    if(isMember){
+
+      if(isOwner){
     res.json({
       project: {
         _id: project._id,
@@ -506,7 +513,43 @@ export const getProjectDetails = async (req, res) => {
         createdAt: project.createdAt,
       },
       isOwner,
+    }); }
+    else
+    {
+      res.json({
+      project: {
+        _id: project._id,
+        title: project.title,
+        description: project.description,
+        tags: project.tags,
+        techStack: project.techStack,
+        createdBy: project.createdBy,
+        collaborators: project.collaborators,
+        // pendingInvites: project.pendingInvites,
+        // joinRequests: project.joinRequests,
+        createdAt: project.createdAt,
+      },
+      isOwner,
     });
+    }
+  }
+    else
+    {
+      res.json({
+      project: {
+        // _id: project._id,
+        title: project.title,
+        description: project.description,
+        tags: project.tags,
+        techStack: project.techStack,
+        createdBy: project.createdBy,
+        // collaborators: project.collaborators,
+        // pendingInvites: project.pendingInvites,
+        // joinRequests: project.joinRequests,
+        createdAt: project.createdAt,
+      }
+    });
+    }
   } catch (err) {
     console.error("Error fetching project details:", err);
     res.status(500).json({ message: "Internal server error" });
