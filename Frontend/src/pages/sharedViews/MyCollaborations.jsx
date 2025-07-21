@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function MyCollaborations() {
+  const navigate= useNavigate();
   const [collaborations, setCollaborations] = useState([]);
 
   useEffect(() => {
@@ -33,12 +36,30 @@ export default function MyCollaborations() {
               className="bg-[#1c1c1c] text-white border border-white/10 hover:shadow-lg transition-shadow duration-300 flex justify-center items-center"
             >
               <CardContent className="p-5 text-center">
-                <h3 className="text-lg font-semibold mb-1 truncate">
+                <h3 className="font-bold mb-1 truncate text-3xl">
                   {proj.title}
                 </h3>
-                <p className="text-sm text-gray-300 line-clamp-3">
+                <p className="text-sm text-gray-300 line-clamp-3 pt-2">
                   {proj.description}
                 </p>
+                  <div className="flex flex-wrap gap-2 mb-3 pt-2 mt-5">
+                  {proj.techStack.map((tech, i) => (
+                    <span key={i} className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20">
+                      {tech}
+                    </span>
+                  ))}
+                  {proj.tags.map((tag, i) => (
+                    <span key={i} className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+                 <Button
+                  onClick={() => navigate(`/project/${proj._id}`)}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white mt-2 hover:text-black/70"
+                >
+                  Enter Project
+                </Button>
               </CardContent>
             </Card>
           ))}
