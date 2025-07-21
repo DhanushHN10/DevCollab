@@ -1,4 +1,3 @@
-// File: components/SharedView/MyProjects.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +9,7 @@ export default function MyProjects() {
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("/api/project/my-projects", {
+        const res = await axios.get("/api/projects/my-projects", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProjects(res.data);
