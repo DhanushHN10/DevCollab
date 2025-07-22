@@ -78,39 +78,14 @@ try {
 }
 };
 
-
-// export const searchProjects =  async (req,res) => {
-//     try {
-       
-//        const {q, tags} = req.query;
-//         const query= {
-//              isAcceptingDevs:true,
-//                 createdBy: {$ne: req.user._id},
-//          $or:[
-//             {title: {$regex: q, $options: 'i'}},
-//             {tags: {$in: tags?.split(',') || []}},
-//             { description: new RegExp(q, 'i') },
-//         ]
-//     };
-
-//         const projects = await Project.find(query).limit(50);
-
-//         res.json(projects);
-// } catch (error) {
-//         res.status(500).json({
-//             message:"Server Error",
-//             error:error.message
-//         });
-//     }
-// };
-
 export const searchProjects = async (req, res) => {
   try {
-    const { q, tags } = req.query;
+    const { q, tags, techStack } = req.query;
 
     const query = {
       isAcceptingDevs: true,
-      createdBy: { $ne: req.user._id },
+      createdBy: { $ne: req.user._id }, 
+
     };
 
     const orCondtn = [];
@@ -123,12 +98,21 @@ export const searchProjects = async (req, res) => {
     }
 
     if (tags) {
-      const tagarr = tags.split(',').map(tag => tag.trim()).filter(Boolean);
-      if (tagarr.length > 0) {
-        orCondtn.push({ tags: { $in: tagarr } });
+      const tagArr = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      if (tagArr.length > 0) {
+        query.tags = { $in: tagArr };
       }
     }
 
+  
+    if (techStack) {
+      const techArr = techStack.split(',').map(tech => tech.trim()).filter(Boolean);
+      if (techArr.length > 0) {
+        query.techStack = { $in: techArr };
+      }
+    }
+
+  
     if (orCondtn.length > 0) {
       query.$or = orCondtn;
     }
@@ -140,6 +124,7 @@ export const searchProjects = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 
 
@@ -361,12 +346,17 @@ export const cancelJoinRequest = async(req,res) =>{
     const project = await Project.findById(projectId);
 
     if(!project) return res.status(404).json({message:"Project not found"});
+    const prevLength = project.joinRequests.length;  
 
     project.joinRequests = project.joinRequests.filter(id => id.toString() !== req.user._id.toString());
+      if (project.joinRequests.length === prevLength) {
+      return res.status(400).json({ message: "Join request not found or already cancelled" });
+    }
 
     await project.save();
 
     res.status(200).json({ message:"Join request cancelled"});
+
 
 };
 
@@ -428,11 +418,23 @@ export const acceptProjectInvite = async (req, res) => {
   if (!project.pendingInvites.includes(userId))
     return res.status(400).json({ message: 'No invite found' });
 
+  console.log("Invites array:", project.pendingInvites);
+
+
   project.pendingInvites = project.pendingInvites.filter(
     id => id.toString() !== userId.toString()
   );
+const alreadyCollaborator = project.collaborators.some(
+  member => member.user && member.user.toString() === userId.toString()
+);
 
-  project.collaborators.push(userId);
+ // just to avoid duplicate collaborators if it happens
+
+    if (!alreadyCollaborator) {
+    project.collaborators.push(userId)
+  }
+
+  // project.collaborators.push(userId);
   await project.save();
 
   await addUserToWorkSpace(projectId,userId);
@@ -464,9 +466,18 @@ export const getInvitesReceived = async (req, res) => {
   try {
     const projects = await Project.find({ pendingInvites: req.user._id })
       .populate('createdBy', 'name username email')
-      .select('title createdBy tags techStack');
+      .select('_id title createdBy tags techStack');
 
-    res.json({ invites: projects });
+      console.log(projects)
+
+       const invites = projects.map((project) => ({
+      ...project._doc,
+      _id: project._id,
+    }));
+
+    
+
+     res.json({ invites });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch invites received', details: err.message });
   }
@@ -475,9 +486,14 @@ export const getInvitesReceived = async (req, res) => {
 
 export const getJoinRequestsSent = async (req, res) => {
   try {
-    const requests = await Project.find({ joinRequests: req.user._id })
-      .select('title createdBy tags techStack')
+    const projects = await Project.find({ joinRequests: req.user._id })
+      .select('_id title description createdBy tags techStack')
       .populate('createdBy', 'name username email');
+
+     const requests = projects.map((project) => ({
+      ...project._doc,
+      projectId: project._id.toString(),
+    }));
 
     res.json({ requests });
   } catch (err) {
