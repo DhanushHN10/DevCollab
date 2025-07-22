@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import API from "../../api/axios";
 
 export default function JoinRequestsSent() {
   const [joinRequests, setJoinRequests] = useState([]);
@@ -12,10 +13,8 @@ export default function JoinRequestsSent() {
   useEffect(() => {
     const fetchJoinRequests = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("/api/projects/my/requests", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+
+        const res= await API.get("/api/projects/my/requests");
        
 
         setJoinRequests(res.data.requests);
@@ -66,11 +65,23 @@ export default function JoinRequestsSent() {
             >
               <CardContent className="p-5">
                 <h3 className="text-lg font-semibold mb-1 truncate">
-                  {req.projectTitle || "Untitled Project"}
+                  {req.title || "Untitled Project"}
                 </h3>
                 <p className="text-sm text-gray-300 line-clamp-3 mb-4">
-                  {req.projectDescription || "No description available."}
+                  {req.description || "No description available."}
                 </p>
+                <div className="flex flex-wrap gap-2 mb-3 pt-2 mt-5 justify-center">
+                {req.techStack?.slice().map((tech, i) => (
+                  <span key={i} className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20">
+                    {tech}
+                  </span>
+                ))}
+                {req.tags?.slice().map((tag, i) => (
+                  <span key={i} className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
                 <Button
                   variant="destructive"
                   onClick={() => handleUnsend(req.projectId)}
