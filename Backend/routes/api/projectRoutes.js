@@ -33,7 +33,7 @@ router.get('/my-projects',protect, getMyProjects);
 
 router.get('/my-collabs', protect, getMyCollaboratedProjects);
 
-router.get('/search',protect, searchProjects);
+router.get('/search-projects',protect, searchProjects);
 router.get('/:projectId/workspace',protect,getWorkspace);
 
 
