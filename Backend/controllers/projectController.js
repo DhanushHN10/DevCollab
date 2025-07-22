@@ -334,6 +334,13 @@ export const unsendInvite = async (req,res) => {
                 message: "Only the Project Owner can unsend invites"
             });
         }   
+        const wasInvited = project.pendingInvites.some(id => id.toString() === unsendUserId.toString());
+if (!wasInvited) {
+  return res.status(400).json({
+    message: "User was not in pending invites",
+  });
+}
+
 
 
        project.pendingInvites = project.pendingInvites.filter( id => id.toString() !== unsendUserId.toString()); 
@@ -388,6 +395,9 @@ export const acceptJoinRequest = async(req,res)=> {
   project.collaborators.push(acceptUserId);
   await project.save();
   await addUserToWorkSpace(projectId,acceptUserId);
+
+  res.json({ message: 'User added as collaborator and updated the workspace' });
+
 };
 
 
@@ -484,8 +494,11 @@ export const getProjectDetails = async (req, res) => {
 
     const project = await Project.findById(projectId)
       .populate('createdBy', 'name username')
-      .populate('collaborators', 'name username avatar') 
+      .populate('collaborators', 'name username avatar')    .populate('pendingInvites', 'name username avatar email')
+    .populate('joinRequests', 'name username avatar email') 
       .lean(); 
+
+      // have added .lean() to return just plain js objects instead of mongoose documents as we are not going to modify the requested details from this api..
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
@@ -547,7 +560,8 @@ export const getProjectDetails = async (req, res) => {
         // pendingInvites: project.pendingInvites,
         // joinRequests: project.joinRequests,
         createdAt: project.createdAt,
-      }
+      },
+      isOwner,
     });
     }
   } catch (err) {
