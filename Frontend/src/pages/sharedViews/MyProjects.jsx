@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import API from "../../api/axios";
 
 export default function MyProjects() {
   const navigate= useNavigate();
@@ -11,10 +11,7 @@ export default function MyProjects() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("/api/projects/my-projects", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await API.get("/api/projects/my-projects")
         setProjects(res.data);
       } catch (err) {
         console.error("Failed to fetch my projects", err);

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { useNavigate } from "react-router-dom";
+import API from "../../api/axios";
 
 export default function MyCollaborations() {
   const navigate= useNavigate();
@@ -11,10 +11,7 @@ export default function MyCollaborations() {
   useEffect(() => {
     const fetchCollaborations = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("/api/project/my-collaborations", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await API.get("/api/projects/my-collaborations")
         setCollaborations(res.data);
       } catch (err) {
         console.error("Failed to fetch collaborations", err);
