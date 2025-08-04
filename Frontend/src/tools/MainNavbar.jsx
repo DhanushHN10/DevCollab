@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import logout from "../utils/logout.js";
 import { useNavigate } from "react-router-dom";
+import DevCollabLogo from '../assets/DevCollab_Logo.png';
 export default function MainNavbar() {
   const navigate = useNavigate();
   
@@ -12,6 +13,7 @@ export default function MainNavbar() {
     <nav className="fixed top-0 left-0 w-full z-50 bg-white/10 backdrop-blur-md border-b border-white/20 shadow-lg">
       <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
         {/* Left: Logo */}
+         <img src={DevCollabLogo}  className="h-13 w-13" />
         <h1 className="text-xl font-semibold font-mono text-white">
           <Link to="/" className="hover:text-blue-400 transition">
             <span className="text-white/70">Dev</span>
