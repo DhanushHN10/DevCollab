@@ -1,237 +1,3 @@
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import API from "../api/axios";
-// import Select from "react-select";
-// import { X } from "lucide-react";
-// import MainNavbar from "../tools/MainNavbar";
-// import { Card, CardContent } from "../components/ui/card";
-// import {Button} from "../components/ui/button";
-// import getUserIdFromToken from "../utils/getUserIdFromToken";
-
-// const techStackOptions = [
-//   { value: "react", label: "React" },
-//   { value: "nextjs", label: "Next.js" },
-//   { value: "vue", label: "Vue.js" },
-//   { value: "svelte", label: "Svelte" },
-//   { value: "angular", label: "Angular" },
-//   { value: "nodejs", label: "Node.js" },
-//   { value: "express", label: "Express.js" },
-//   { value: "django", label: "Django" },
-//   { value: "flask", label: "Flask" },
-//   { value: "springboot", label: "Spring Boot" },
-//   { value: "laravel", label: "Laravel" },
-//   { value: "ruby_on_rails", label: "Ruby on Rails" },
-//   { value: "typescript", label: "TypeScript" },
-//   { value: "tailwindcss", label: "Tailwind CSS" },
-//   { value: "chakraui", label: "Chakra UI" },
-//   { value: "redux", label: "Redux" },
-//   { value: "graphql", label: "GraphQL" },
-//   { value: "mongodb", label: "MongoDB" },
-//   { value: "postgresql", label: "PostgreSQL" },
-//   { value: "mysql", label: "MySQL" },
-//   { value: "firebase", label: "Firebase" },
-//   { value: "supabase", label: "Supabase" },
-//   { value: "docker", label: "Docker" },
-//   { value: "kubernetes", label: "Kubernetes" },
-//   { value: "aws", label: "AWS" },
-//   { value: "gcp", label: "GCP" },
-//   { value: "azure", label: "Azure" },
-//   { value: "python", label: "Python" },
-//   { value: "java", label: "Java" },
-//   { value: "cpp", label: "C++" },
-//   { value: "rust", label: "Rust" },
-//   { value: "go", label: "Go" },
-//   { value: "solidity", label: "Solidity" },
-//   { value: "pytorch", label: "PyTorch" },
-//   { value: "tensorflow", label: "TensorFlow" },
-// ];
-
-// const tagOptions = [
-//   { value: "webdev", label: "Web Development" },
-//   { value: "appdev", label: "App Development" },
-//   { value: "frontend", label: "Frontend" },
-//   { value: "backend", label: "Backend" },
-//   { value: "fullstack", label: "Fullstack" },
-//   { value: "machinelearning", label: "Machine Learning" },
-//   { value: "deeplearning", label: "Deep Learning" },
-//   { value: "ai", label: "AI" },
-//   { value: "data_science", label: "Data Science" },
-//   { value: "nlp", label: "NLP" },
-//   { value: "cv", label: "Computer Vision" },
-//   { value: "game_dev", label: "Game Development" },
-//   { value: "web3", label: "Web3" },
-//   { value: "blockchain", label: "Blockchain" },
-//   { value: "open_source", label: "Open Source" },
-//   { value: "devops", label: "DevOps" },
-//   { value: "cloud", label: "Cloud" },
-//   { value: "education", label: "EdTech" },
-//   { value: "healthcare", label: "HealthTech" },
-//   { value: "ecommerce", label: "E-commerce" },
-//   { value: "social", label: "Social Media" },
-//   { value: "design", label: "UI/UX Design" },
-//   { value: "automation", label: "Automation" },
-//   { value: "iot", label: "IoT" },
-//   { value: "robotics", label: "Robotics" },
-//   { value: "sustainability", label: "Sustainability" },
-//   { value: "cybersecurity", label: "Cybersecurity" },
-//   { value: "productivity", label: "Productivity" },
-// ];
-
-// export default function Dashboard() {
-//   const navigate = useNavigate();
-//   const [query, setQuery] = useState("");
-//   const [projects, setProjects] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [selectedTags, setSelectedTags] = useState([]);
-//   const [selectedTechStack, setSelectedTechStack] = useState([]);
-
-//   const userId= getUserIdFromToken();
-
-
-//   useEffect(() => {
-//   const debounce = setTimeout(() => {
-//     const tagsParam = selectedTags.map((item) => item.value).join(",");
-//     const techStackParam = selectedTechStack.map((item) => item.value).join(",");
-
-//     if (!query && tagsParam.length === 0 && techStackParam.length === 0) {
-//       setProjects([]);
-//       return;
-//     }
-
-//     setLoading(true);
-
-   
-//     const params = new URLSearchParams();
-//     if (query) params.append("q", query);
-//     if (tagsParam) params.append("tags", tagsParam);
-//     if (techStackParam) params.append("techStack", techStackParam);
-
-//     API.get(`/api/projects/search-projects?${params.toString()}`)
-//       .then((res) => setProjects(res.data))
-//       .catch((err) => console.error("Search error:", err))
-//       .finally(() => setLoading(false));
-//   }, 500);
-
-//   return () => clearTimeout(debounce);
-// }, [query, selectedTags, selectedTechStack]);
-
-//   return (
-//     <div className="min-h-screen bg-[#0e0e0e] text-white pt-20 px-6">
-//       <MainNavbar />
-
-//       {/* Create Project Button */}
-//       <div className="flex justify-end mb-4 mt-10">
-//         <button
-//           className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow transition"
-//           onClick={() => navigate("/create-project")}
-//         >
-//           Create Project
-//         </button>
-//       </div>
-
-//       {/* Search and Filters */}
-//       <div className="flex flex-col md:flex-row gap-4 mb-8">
-//         <div className="relative w-full md:w-1/2">
-//           <input
-//             type="text"
-//             placeholder="Search by title, description..."
-//             value={query}
-//             onChange={(e) => setQuery(e.target.value)}
-//             className="w-full px-4 py-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-//           />
-//           {query && (
-//             <X
-//               className="absolute right-3 top-3 h-5 w-5 text-gray-400 cursor-pointer"
-//               onClick={() => setQuery("")}
-//             />
-//           )}
-//         </div>
-
-//         <div className="w-full md:w-1/4 z-10">
-//           <Select
-//             isMulti
-//             options={techStackOptions}
-//             value={selectedTechStack}
-//             onChange={setSelectedTechStack}
-//             placeholder="Filter by Tech Stack"
-//             className="text-black"
-//           />
-//         </div>
-
-//         <div className="w-full md:w-1/4 z-10">
-//           <Select
-//             isMulti
-//             options={tagOptions}
-//             value={selectedTags}
-//             onChange={setSelectedTags}
-//             placeholder="Filter by Tags"
-//             className="text-black"
-//           />
-//         </div>
-//       </div>
-
-//       {/* Results */}
-//       <h2 className="text-xl font-semibold mb-4">
-//         {projects.length > 0 ? "Search Results" : "Recommended For You"}
-//       </h2>
-
-//       {loading ? (
-//         <p className="text-gray-400">Loading projects...</p>
-//       ) : (
-//         <ProjectGrid projects={projects} navigate={navigate} />
-//       )}
-//     </div>
-//   );
-// }
-
-// const ProjectGrid = ({ projects, navigate }) => {
-//   if (!projects || projects.length === 0) return <p className="text-gray-400">No projects found.</p>;
-
-//   return (
-//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
-//       {projects.map((proj) => (
-//         <Card
-//           key={proj._id}
-//           className="bg-[#1c1c1c] text-white border border-white/10 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between"
-//         >
-//           <CardContent className="p-5 text-center">
-//             <h3 className="font-bold mb-1 truncate text-2xl">{proj.title}</h3>
-//             <p className="text-sm text-gray-300 line-clamp-8 pt-2">{proj.description}</p>
-//             <div className="flex flex-wrap gap-2 mb-3 pt-2 mt-5 justify-center">
-//               {proj.techStack?.slice().map((tech, i) => (
-//                 <span
-//                   key={i}
-//                   className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20"
-//                 >
-//                   {tech}
-//                 </span>
-//               ))}
-//               {proj.tags?.slice().map((tag, i) => (
-//                 <span
-//                   key={i}
-//                   className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20"
-//                 >
-//                   #{tag}
-//                 </span>
-//               ))}
-//             </div>
-//           </CardContent>
-//           <div className="p-4">
-//             <Button
-//               onClick={() => navigate(`/project/${proj._id}`)}
-//               className="w-full bg-purple-600 hover:bg-purple-700 text-white mt-2"
-//             >
-//               View Project
-//             </Button>
-//           </div>
-//         </Card>
-//       ))}
-//     </div>
-//   );
-// };
-
-
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
@@ -320,25 +86,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedTechStack, setSelectedTechStack] = useState([]);
-  // const [recommendedProjects, setRecommendedProjects] = useState([]);
-  // const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(true);
+  const [recommendedProjects, setRecommendedProjects] = useState([]);
+  const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(true);
+  const [cachedRecommendations, setCachedRecommendations] = useState([]);
+const [hasFetchedRecommendationsOnce, setHasFetchedRecommendationsOnce] = useState(false);
+
 
   const userId = getUserIdFromToken();
 
-  // useEffect(() => {
-  //   const fetchRecommendations = async () => {
-  //     setIsRecommendationsLoading(true);
-  //     try {
-  //       const res = await API.get('/api/projects/recommendations');
-  //       setRecommendedProjects(res.data);
-  //     } catch (err) {
-  //       console.error("Failed to fetch recommendations:", err);
-  //     } finally {
-  //       setIsRecommendationsLoading(false);
-  //     }
-  //   };
-  //   fetchRecommendations();
-  // }, []);
+
+
 
 
   useEffect(() => {
@@ -368,8 +125,39 @@ export default function Dashboard() {
   }, [query, selectedTags, selectedTechStack]);
 
   const hasSearchCriteria = query || selectedTags.length > 0 || selectedTechStack.length > 0;
-  const displayProjects = hasSearchCriteria ? projects :  "Will be added soon" //      recommendedProjects;
-  const isDisplayLoading = hasSearchCriteria ? loading : "Reccommended projects loading"      // isRecommendationsLoading;
+
+useEffect(() => {
+  const fetchRecommendedProjects = async () => {
+    if (!hasSearchCriteria) {
+      if (hasFetchedRecommendationsOnce) {
+        
+        setRecommendedProjects(cachedRecommendations);
+        return;
+      }
+
+      setIsRecommendationsLoading(true);
+      try {
+        const res = await API.get('/api/recommendations/projects');
+        setRecommendedProjects(res.data.recommendedProjects);
+        setCachedRecommendations(res.data.recommendedProjects);  
+        setHasFetchedRecommendationsOnce(true);
+      } catch (error) {
+        console.error('Error fetching recommended projects:', error);
+        setRecommendedProjects([]); 
+      } finally {
+        setIsRecommendationsLoading(false); 
+      }
+    }
+  };
+
+  fetchRecommendedProjects();
+}, [hasSearchCriteria]);
+
+
+
+
+  const displayProjects = hasSearchCriteria ? projects :      recommendedProjects;  
+  const isDisplayLoading = hasSearchCriteria ? loading :   isRecommendationsLoading;  
   const displayTitle = hasSearchCriteria ? "Search Results" : "Recommended For You";
 
 
@@ -504,6 +292,7 @@ const ProjectGrid = ({ projects, navigate, currentUserId }) => {
             <CardContent className="p-5 text-center">
               <h3 className="font-bold mb-1 truncate text-2xl">{proj.title}</h3>
               <p className="text-sm text-gray-300 line-clamp-8 pt-2">{proj.description}</p>
+              
               <div className="flex flex-wrap gap-2 mb-3 pt-2 mt-5 justify-center">
                 {proj.techStack?.slice().map((tech, i) => (
                   <span key={i} className="bg-white/10 px-2 py-1 rounded-full text-xs border border-white/20">
@@ -516,6 +305,12 @@ const ProjectGrid = ({ projects, navigate, currentUserId }) => {
                   </span>
                 ))}
               </div>
+              {proj.similarity !== undefined && (
+  <p className="text-sm text-green-400 mt-2">
+    {proj.similarity}% match
+  </p>
+)}
+
             </CardContent>
             <div className="p-4">
               {isCollaborator ? (
