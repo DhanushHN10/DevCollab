@@ -1,6 +1,8 @@
 import Project from "../models/Project.js";
 import Workspace from "../models/Workspace.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
+import User from "../models/User.js";
+
 
 export const createProject = async(req,res) =>{
     try {
@@ -125,6 +127,79 @@ export const searchProjects = async (req, res) => {
   }
 };
 
+export const searchDevs = async (req, res) => {
+
+  try {
+    const { q, skills, interests, availability } = req.query;
+    const { projectId } = req.params;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+   
+    
+    const excludeuserIdToInvites = [
+      ...project.collaborators, 
+      ...project.pendingInvites,
+      ...project.joinRequests
+      // project.createdBy
+    ];
+
+
+
+    const query = {
+      _id: { $nin: excludeuserIdToInvites },
+    };
+
+    
+
+ 
+    if (q && q.trim() !== '') {
+      const regex = new RegExp(q, 'i');
+      query.$or = [{ name: regex }, { username: regex }];
+    }
+
+
+    // if (skills) {
+    //   const skillArray = skills.split(',').map(s => s.trim());
+    //   query.skills = { $in: skillArray };
+    // }
+
+  
+    // if (interests) {
+    //   const interestArray = interests.split(',').map(i => i.trim());
+    //   query.interests = { $in: interestArray };
+    // }
+    if (skills && skills.trim() !== '') {
+  const skillArray = skills.split(',').map(s => s.trim());
+  query.skills = { $in: skillArray };
+}
+
+if (interests && interests.trim() !== '') {
+  const interestArray = interests.split(',').map(i => i.trim());
+  query.interests = { $in: interestArray };
+}
+
+
+ 
+    // if (availability && availability !== 'Any') {
+    //   query.availability = availability;
+    // }
+    if (availability && availability !== 'Any' && availability !== 'undefined') {
+  query.availability = availability;
+}
+
+// console.log(`HAHAHAHA : ${query}`);
+    const users = await User.find(query).select('_id name username skills interests availability links');
+// add avatar later
+    res.json({ users });
+
+  } catch (error) {
+    console.error('Search users failed:', error);
+    console.log(`Error: ${error}`);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 
 
 
@@ -191,8 +266,8 @@ export const getWorkspace = async (req, res) => {
 
 export const inviteToProject = async (req,res) => {
     const projectId = req.params.projectId;
-    const userId= req.body.userId;
-
+    const userIdToInvite= req.params.userIdToInvite;
+  
     const project = await Project.findById(projectId);
     if(!project) {
         return res.status(404).json({
@@ -200,7 +275,9 @@ export const inviteToProject = async (req,res) => {
         });
     }
 
-    if(project.createdBy.toString() !== req.user._id)
+
+
+    if(project.createdBy.toString() !== (req.user._id).toString())
     {
         return res.status(403).json({
             message: "You aren't authorised to send invites. Only the owner can send invites."
@@ -208,7 +285,7 @@ export const inviteToProject = async (req,res) => {
         });
     }
 
-    if(project.collaborators.includes(userId))
+    if(project.collaborators.includes(userIdToInvite))
     {
         return res.status(400).json({
             message: "User is already a collaborator"
@@ -216,7 +293,7 @@ export const inviteToProject = async (req,res) => {
     }
 
 
-    if(project.pendingInvites.includes(userId))
+    if(project.pendingInvites.includes(userIdToInvite))
     {
         return res.status(400).json({
             message: "User has already been invited to this project"
@@ -224,7 +301,7 @@ export const inviteToProject = async (req,res) => {
     }
 
 
-    if(project.joinRequests.includes(userId))
+    if(project.joinRequests.includes(userIdToInvite))
     {
         return res.status(400).json({
             message: "User has already requested to join this project"
@@ -232,13 +309,13 @@ export const inviteToProject = async (req,res) => {
     }
 
 
-    project.pendingInvites.push(userId);
+    project.pendingInvites.push(userIdToInvite);
     await project.save();
 
     res.status(200).json({
         message: "Invite sent successfully",
         projectId: project._id,
-        userId: userId
+        userIdToInvite: userIdToInvite
     });
 
 };
@@ -255,18 +332,18 @@ export const requestToJoin = async(req,res) =>{
         });
     }
 
-    const userId= req.user._id;
+    const userIdToInvite= req.user._id;
 
-    if(project.joinRequests.includes(userId)
+    if(project.joinRequests.includes(userIdToInvite)
     
-    || project.collaborators.includes(userId) || project.pendingInvites.includes(userId))
+    || project.collaborators.includes(userIdToInvite) || project.pendingInvites.includes(userIdToInvite))
     {
         return res.status(400).json({
             message:"You have already requested to join this project or are already a collaborator or have been invited"
         });
     }
 
-    project.joinRequests.push(userId);
+    project.joinRequests.push(userIdToInvite);
 
     await project.save();
 
@@ -278,7 +355,7 @@ export const requestToJoin = async(req,res) =>{
 
 export const getCollabStatus = async (req, res) => {
     const { projectId } = req.params;
-    const userId = req.user._id;
+    const userIdToInvite = req.user._id;
 
     const project = await Project.findById(projectId)
     .populate('pendingInvites', 'name username email avatar')
@@ -289,7 +366,7 @@ export const getCollabStatus = async (req, res) => {
     return res.status(404).json({ message: 'Project not found' });
   }
 
-  if (project.createdBy.toString() !== userId.toString()) {
+  if (project.createdBy.toString() !== userIdToInvite.toString()) {
     return res.status(403).json({ message: 'Only the project owner can view this info' });
   }
 
@@ -301,7 +378,7 @@ export const getCollabStatus = async (req, res) => {
 
 
 export const unsendInvite = async (req,res) => {
-    const {projectId, unsendUserId} = req.params;
+    const {projectId, unsendInvitedUserId} = req.params;
 
     const project = await Project.findById(projectId);
 
@@ -319,7 +396,7 @@ export const unsendInvite = async (req,res) => {
                 message: "Only the Project Owner can unsend invites"
             });
         }   
-        const wasInvited = project.pendingInvites.some(id => id.toString() === unsendUserId.toString());
+        const wasInvited = project.pendingInvites.some(id => id.toString() === unsendInvitedUserId.toString());
 if (!wasInvited) {
   return res.status(400).json({
     message: "User was not in pending invites",
@@ -328,7 +405,7 @@ if (!wasInvited) {
 
 
 
-       project.pendingInvites = project.pendingInvites.filter( id => id.toString() !== unsendUserId.toString()); 
+       project.pendingInvites = project.pendingInvites.filter( id => id.toString() !== unsendInvitedUserId.toString()); 
 
 
        await project.save();
@@ -363,9 +440,11 @@ export const cancelJoinRequest = async(req,res) =>{
 
 
 export const acceptJoinRequest = async(req,res)=> {
-    const{ projectId, acceptUserId} = req.params;
-    
-    const project = await Project.findById(projectId);
+    const{ projectId, acceptRequestedUserId} = req.params;
+
+
+    try {
+      const project = await Project.findById(projectId);
 
     if(!project)
     {
@@ -375,24 +454,33 @@ export const acceptJoinRequest = async(req,res)=> {
      if (project.createdBy.toString() !== req.user._id.toString())
     return res.status(403).json({ message: 'Only owner can accept requests' });
 
-     if (!project.joinRequests.includes(acceptUserId))
+     if (!project.joinRequests.includes(acceptRequestedUserId))
     return res.status(400).json({ message: 'No such request found' });
     
       project.joinRequests = project.joinRequests.filter(
-    id => id.toString() !== acceptUserId
+    id => id.toString() !== acceptRequestedUserId
   );
 
-  project.collaborators.push(acceptUserId);
+  project.collaborators.push(acceptRequestedUserId);
   await project.save();
-  await addUserToWorkSpace(projectId,acceptUserId);
+  await addUserToWorkSpace(projectId,acceptRequestedUserId);
+      
+   res.json({ message: 'User added as collaborator and updated the workspace' });
 
-  res.json({ message: 'User added as collaborator and updated the workspace' });
+    } catch (error) {
+      console.error("Failed To accept User: ",error);
+      console.log(error);
+    }
+    
+    
+
+ 
 
 };
 
 
 export const rejectJoinRequest = async (req, res) => {
-  const { projectId, userId } = req.params;
+  const { projectId, userIdToInvite } = req.params;
   const project = await Project.findById(projectId);
 
   if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -400,7 +488,7 @@ export const rejectJoinRequest = async (req, res) => {
     return res.status(403).json({ message: 'Only owner can reject requests' });
 
   project.joinRequests = project.joinRequests.filter(
-    id => id.toString() !== userId
+    id => id.toString() !== userIdToInvite
   );
 
   await project.save();
@@ -410,34 +498,34 @@ export const rejectJoinRequest = async (req, res) => {
 
 export const acceptProjectInvite = async (req, res) => {
   const { projectId } = req.params;
-  const userId = req.user._id;
+  const userIdToInvite = req.user._id;
 
   const project = await Project.findById(projectId);
   if (!project) return res.status(404).json({ message: 'Project not found' });
 
-  if (!project.pendingInvites.includes(userId))
+  if (!project.pendingInvites.includes(userIdToInvite))
     return res.status(400).json({ message: 'No invite found' });
 
   console.log("Invites array:", project.pendingInvites);
 
 
   project.pendingInvites = project.pendingInvites.filter(
-    id => id.toString() !== userId.toString()
+    id => id.toString() !== userIdToInvite.toString()
   );
 const alreadyCollaborator = project.collaborators.some(
-  member => member.user && member.user.toString() === userId.toString()
+  member => member.user && member.user.toString() === userIdToInvite.toString()
 );
 
  // just to avoid duplicate collaborators if it happens
 
     if (!alreadyCollaborator) {
-    project.collaborators.push(userId)
+    project.collaborators.push(userIdToInvite)
   }
 
-  // project.collaborators.push(userId);
+  // project.collaborators.push(userIdToInvite);
   await project.save();
 
-  await addUserToWorkSpace(projectId,userId);
+  await addUserToWorkSpace(projectId,userIdToInvite);
   res.json({ message: 'Invite accepted, added to project' });
 };
 
@@ -445,13 +533,13 @@ const alreadyCollaborator = project.collaborators.some(
 
 export const rejectProjectInvite = async (req, res) => {
   const { projectId } = req.params;
-  const userId = req.user._id;
+  const userIdToInvite = req.user._id;
 
   const project = await Project.findById(projectId);
   if (!project) return res.status(404).json({ message: 'Project not found' });
 
   project.pendingInvites = project.pendingInvites.filter(
-    id => id.toString() !== userId.toString()
+    id => id.toString() !== userIdToInvite.toString()
   );
 
   await project.save();
@@ -506,7 +594,7 @@ export const getJoinRequestsSent = async (req, res) => {
 export const getProjectDetails = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const userId= req.user._id;
+    const userIdToInvite= req.user._id;
 
     const project = await Project.findById(projectId)
       .populate('createdBy', 'name username')
@@ -522,7 +610,7 @@ export const getProjectDetails = async (req, res) => {
 
     const isOwner = project.createdBy._id.toString() === req.user._id.toString();
     const isMember= project.collaborators.some(
-      collaborators => collaborators._id.toString() === userId.toString());
+      collaborators => collaborators._id.toString() === userIdToInvite.toString());
     
 
     if(isMember){
@@ -585,9 +673,5 @@ export const getProjectDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
-
-
 
 
