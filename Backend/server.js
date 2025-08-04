@@ -7,10 +7,10 @@ import express from 'express';
 import connectDB from './config/db.js';
 import authRoutes from './routes/api/authRoutes.js';
 import passport from 'passport';
-import './config/passport.js';  // Passport configuration
+import './config/passport.js'; 
 
 import projectRoutes from './routes/api/projectRoutes.js'; 
-
+import recommendationRoutes from './routes/api/recommendationRoutes.js';
 
 
 const app= express();
@@ -24,14 +24,14 @@ app.use(cors({
 app.use(passport.initialize());
 
 
-// Init Middleware to parse JSON requests
 app.use(express.json());
 
-app.use('/api/auth', authRoutes); // Use auth routes
-// Import routes
+app.use('/api/auth', authRoutes); 
+
 
 
 app.use('/api/projects', projectRoutes); 
+app.use('/api/recommendations',recommendationRoutes);
 
 app.get('/', (req, res) => {
     res.send('DevCollab API is running...');
@@ -42,4 +42,3 @@ app.listen(PORT, () => {
 });
 
 
-// Some env variables are yet to be updates..
