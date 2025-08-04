@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import MainNavbar from '../../tools/MainNavbar';
+import SearchAndInviteDevs from './searchAndInviteDevs';
 
 
 
@@ -13,6 +14,7 @@ export default function ProjectPage() {
   const [isOwner, setIsOwner] = useState(false);
   const [pendingInvites, setPendingInvites] = useState([]);
   const [joinRequests, setJoinRequests] = useState([]);
+
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -62,7 +64,7 @@ try {
 
   const acceptRequest= async (acceptRequestedUserId) => {
     try {
-      await axios.put(`api/projects/${projectId}/request/accept/${acceptRequestedUserId}`, {},
+      await axios.put(`/api/projects/${projectId}/request/accept/${acceptRequestedUserId}`, {},
         {
            headers:{
           Authorization:`Bearer ${localStorage.getItem('token')}`,
@@ -80,7 +82,7 @@ try {
 
     const rejectRequest = async (rejectRequestedUserId) => {
     try {
-      await axios.delete(`api/projects/${projectId}/request/reject/${rejectRequestedUserId}`,
+      await axios.delete(`/api/projects/${projectId}/request/reject/${rejectRequestedUserId}`,
         {
            headers:{
           Authorization:`Bearer ${localStorage.getItem('token')}`,
@@ -152,9 +154,17 @@ try {
         {/* Owner-Only Sections */}
         {isOwner && (
           <>
-            <div id="searchDev" className="mb-12">
-              <h2 className="text-2xl font-semibold mb-4">Search & Invite Developers</h2>
-              <p className="text-white/60">(Search UI will be implemented here)</p>
+          <div id="searchDev" className='text-center h-[max-content] my-4 py-3 flex justify-center'>
+            <div className="mb-12 w-5xl justify-center items-center">
+              <h2 className="text-2xl font-semibold mb-5 pb-3   ">Search & Invite Developers</h2>
+              {/* <p className="text-white/60">(Search UI will be implemented here)</p> */}
+              <SearchAndInviteDevs projectId = {projectId}className="relative"
+               onInviteSuccess={(invitedUser) => {
+    setPendingInvites((prev) => [...prev, invitedUser]);
+  }}
+              
+              />
+            </div>
             </div>
 
             <div id="invites" className="mb-12">
