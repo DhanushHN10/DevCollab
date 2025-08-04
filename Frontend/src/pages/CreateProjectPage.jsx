@@ -31,15 +31,11 @@ const techStackOptions = [
   { value: "aws", label: "AWS" },
   { value: "gcp", label: "GCP" },
   { value: "azure", label: "Azure" },
-  { value: "python", label: "Python" },
-  { value: "java", label: "Java" },
-  { value: "cpp", label: "C++" },
   { value: "rust", label: "Rust" },
   { value: "go", label: "Go" },
-  { value: "solidity", label: "Solidity" },
-  { value: "pytorch", label: "PyTorch" },
-  { value: "tensorflow", label: "TensorFlow" },
+  { value: "bash", label: "Bash/Shell" }
 ];
+
 
 
 const tagOptions = [
@@ -59,7 +55,7 @@ const tagOptions = [
   { value: "blockchain", label: "Blockchain" },
   { value: "open_source", label: "Open Source" },
   { value: "devops", label: "DevOps" },
-  { value: "cloud", label: "Cloud" },
+  { value: "cloud", label: "Cloud Computing" },
   { value: "education", label: "EdTech" },
   { value: "healthcare", label: "HealthTech" },
   { value: "ecommerce", label: "E-commerce" },
@@ -70,8 +66,11 @@ const tagOptions = [
   { value: "robotics", label: "Robotics" },
   { value: "sustainability", label: "Sustainability" },
   { value: "cybersecurity", label: "Cybersecurity" },
-  { value: "productivity", label: "Productivity" },
+  { value: "productivity", label: "Productivity Tools" },
+  { value: "fintech", label: "FinTech" },
+  { value: "musictech", label: "MusicTech" }
 ];
+
 
 
 export default function CreateProjectPage() {
