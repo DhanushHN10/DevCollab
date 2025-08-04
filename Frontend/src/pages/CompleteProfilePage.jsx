@@ -9,35 +9,71 @@ import Select from "react-select";
 import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
-// Skills & Interests Options
+
+
+
 const skillsOptions = [
-  { label: "JavaScript", value: "JavaScript" },
   { label: "React", value: "React" },
+  { label: "Next.js", value: "Next.js" },
+  { label: "Vue.js", value: "Vue.js" },
+  { label: "Angular", value: "Angular" },
   { label: "Node.js", value: "Node.js" },
+  { label: "Express", value: "Express" },
+  { label: "Django", value: "Django" },
+  { label: "Flask", value: "Flask" },
+  { label: "Spring Boot", value: "Spring Boot" },
+  { label: "Laravel", value: "Laravel" },
   { label: "MongoDB", value: "MongoDB" },
+  { label: "PostgreSQL", value: "PostgreSQL" },
+  { label: "MySQL", value: "MySQL" },
+  { label: "GraphQL", value: "GraphQL" },
+  { label: "TypeScript", value: "TypeScript" },
   { label: "Python", value: "Python" },
+  { label: "Java", value: "Java" },
+  { label: "C++", value: "C++" },
+  { label: "Go", value: "Go" },
+  { label: "Rust", value: "Rust" },
+  { label: "Docker", value: "Docker" },
+  { label: "Kubernetes", value: "Kubernetes" },
+  { label: "AWS", value: "AWS" },
+  { label: "Firebase", value: "Firebase" },
+  { label: "TensorFlow", value: "TensorFlow" },
+  { label: "PyTorch", value: "PyTorch" },
+  { label: "Pandas", value: "Pandas" },
   { label: "Tailwind CSS", value: "Tailwind CSS" },
   { label: "Figma", value: "Figma" },
-  { label: "C++", value: "C++" },
-  { label: "TypeScript", value: "TypeScript" },
-  { label: "Next.js", value: "Next.js" },
-  { label: "Docker", value: "Docker" },
-  { label: "PostgreSQL", value: "PostgreSQL" },
-  { label: "Firebase", value: "Firebase" },
-  { label: "AI/ML", value: "AI/ML" },
+  { label: "UI/UX Design", value: "UI/UX Design" },
 ];
-
 const interestsOptions = [
-  { label: "Frontend", value: "Frontend" },
-  { label: "Backend", value: "Backend" },
-  { label: "UI/UX", value: "UI/UX" },
-  { label: "DevOps", value: "DevOps" },
-  { label: "AI", value: "AI" },
-  { label: "ML", value: "ML" },
-  { label: "App Dev", value: "App Dev" },
-  { label: "Web3", value: "Web3" },
-  { label: "Cloud", value: "Cloud" },
+  { label: "Artificial Intelligence", value: "Artificial Intelligence" },
+  { label: "Machine Learning", value: "Machine Learning" },
+  { label: "Deep Learning", value: "Deep Learning" },
+  { label: "Web Development", value: "Web Development" },
+  { label: "App Development", value: "App Development" },
   { label: "Open Source", value: "Open Source" },
+  { label: "DevOps", value: "DevOps" },
+  { label: "Cloud Computing", value: "Cloud Computing" },
+  { label: "Blockchain", value: "Blockchain" },
+  { label: "Cybersecurity", value: "Cybersecurity" },
+  { label: "Data Science", value: "Data Science" },
+  { label: "Competitive Programming", value: "Competitive Programming" },
+  { label: "UI/UX Design", value: "UI/UX Design" },
+  { label: "Product Design", value: "Product Design" },
+  { label: "Game Development", value: "Game Development" },
+  { label: "Augmented Reality", value: "Augmented Reality" },
+  { label: "Virtual Reality", value: "Virtual Reality" },
+  { label: "Internet of Things (IoT)", value: "Internet of Things (IoT)" },
+  { label: "FinTech", value: "FinTech" },
+  { label: "EdTech", value: "EdTech" },
+  { label: "Startups", value: "Startups" },
+  { label: "SaaS Products", value: "SaaS Products" },
+  { label: "Design Systems", value: "Design Systems" },
+  { label: "Accessibility", value: "Accessibility" },
+  { label: "Sustainability Tech", value: "Sustainability Tech" },
+  { label: "Tech for Social Good", value: "Tech for Social Good" },
+  { label: "Digital Marketing", value: "Digital Marketing" },
+  { label: "System Design", value: "System Design" },
+  { label: "Agile Methodology", value: "Agile Methodology" },
   { label: "Hackathons", value: "Hackathons" },
 ];
 
@@ -80,7 +116,7 @@ export default function CompleteProfilePage() {
 
       try {
         const decoded = jwtDecode(token);
-      const userId = decoded.id; // assuming your backend encodes { id: user._id }
+      const userId = decoded.id; 
       console.log("User ID from token:", userId);
       } catch (error) {
          console.error("Failed to check profile status", error);
