@@ -21,6 +21,10 @@ const [password, setPassword] = useState("");
 const [name,setName]=useState("");
 
 
+  const handleGoogleLogin = () => {
+  window.location.href = 'http://localhost:5000/api/auth/oauth/google';
+};
+
 const handleSignup = async () => {
   try {
     const res = await API.post("/api/auth/signup", { name, username, email, password });
@@ -69,7 +73,15 @@ onClick={handleSignup}>
   Sign Up
 </Button>
 
-<Button className="mt-6 w-full bg-white/20 hover:bg-white/70 hover:text-black border border-white text-white transition-transform duration-200 hover:scale-105">
+<Button className="mt-6 w-full bg-white/20 hover:bg-white/70 hover:text-black border border-white text-white transition-transform duration-200 hover:scale-105"
+onClick={handleGoogleLogin}
+>
+
+ <img
+  src="https://www.svgrepo.com/show/475656/google-color.svg"
+  alt="Google"
+  className="relative w-5 h-5 mr-2 z-50 bg-white/60  "
+/>
   <span className="font-semibold font-roboto">Signup with Google</span>
 </Button>
 
