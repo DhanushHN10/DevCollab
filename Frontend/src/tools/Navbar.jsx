@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import DevCollabLogo from '../assets/DevCollab_Logo.png';
 
