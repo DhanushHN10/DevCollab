@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import API from "../../api/axios";
@@ -31,10 +30,7 @@ export default function JoinRequestsSent() {
 
   const handleUnsend = async (projectId) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`/api/projects/my/requests/${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.delete(`/api/projects/my/requests/${projectId}`);
       setJoinRequests((prev) => prev.filter((req) => req.projectId !== projectId));
     } catch (err) {
       console.error("Failed to unsend join request", err);

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import MainNavbar from '../../tools/MainNavbar';
 import SearchAndInviteDevs from './searchAndInviteDevs';
-
+import API from '../../api/axios';
 
 
 export default function ProjectPage() {
@@ -19,11 +19,8 @@ export default function ProjectPage() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const res = await axios.get(`/api/projects/${projectId}/overview`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const res = await API.get(`/api/projects/${projectId}/overview`)
+        
         setProject(res.data.project);
         setIsOwner(res.data.isOwner);
         setPendingInvites(res.data.project.pendingInvites);
@@ -45,15 +42,8 @@ export default function ProjectPage() {
 
   const unsendInvite = async(unsendInviteUserId) =>{
 try {
-    await axios.delete(
-      `/api/projects/${projectId}/invite/${unsendInviteUserId}`,
-      {
-        headers:{
-          Authorization:`Bearer ${localStorage.getItem('token')}`,
-
-        },
-      }
-    );
+    await API.delete(
+      `/api/projects/${projectId}/invite/${unsendInviteUserId}` );
 
     setPendingInvites((items) => items.filter((invite)=> invite._id !== unsendInviteUserId))
   } catch (error) {
@@ -64,13 +54,7 @@ try {
 
   const acceptRequest= async (acceptRequestedUserId) => {
     try {
-      await axios.put(`/api/projects/${projectId}/request/accept/${acceptRequestedUserId}`, {},
-        {
-           headers:{
-          Authorization:`Bearer ${localStorage.getItem('token')}`,
-
-        },
-        }
+      await API.put(`/api/projects/${projectId}/request/accept/${acceptRequestedUserId}`, {},
       );
 
         setJoinRequests((items) => items.filter((dev) => dev._id !== acceptRequestedUserId))
@@ -82,14 +66,7 @@ try {
 
     const rejectRequest = async (rejectRequestedUserId) => {
     try {
-      await axios.delete(`/api/projects/${projectId}/request/reject/${rejectRequestedUserId}`,
-        {
-           headers:{
-          Authorization:`Bearer ${localStorage.getItem('token')}`,
-
-        },
-        }
-      );
+      await API.delete(`/api/projects/${projectId}/request/reject/${rejectRequestedUserId}`);
 
         setJoinRequests((items) => items.filter((dev) => dev._id !== rejectRequestedUserId))
     } catch (error) {

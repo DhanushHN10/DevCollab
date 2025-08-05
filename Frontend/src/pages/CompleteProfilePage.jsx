@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Particles from "../blocks/Backgrounds/Particles/Particles";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import Navbar2 from "../tools/Nav_logsign";
+// import Navbar2 from "../tools/Nav_logsign";
 import { Textarea } from "../components/ui/textarea";
 import Select from "react-select";
 import { useEffect } from "react";

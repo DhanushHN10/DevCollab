@@ -1,8 +1,7 @@
 import { Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
 import MainNavbar from "../tools/MainNavbar";
-// import { useState,useEffect } from "react";
-// import axios from "axios";
+
 
 const MyProjects = lazy(() => import("./sharedViews/MyProjects"));
 const MyCollaborations = lazy(() => import("./sharedViews/MyCollaborations"));
