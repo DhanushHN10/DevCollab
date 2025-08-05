@@ -22,7 +22,8 @@ const [name,setName]=useState("");
 
 
   const handleGoogleLogin = () => {
-  window.location.href = 'http://localhost:5000/api/auth/oauth/google';
+    const googleSignupUrl = `${import.meta.env.VITE_API_BASE_URL}/api/auth/oauth/google`;
+  window.location.href = googleSignupUrl;
 };
 
 const handleSignup = async () => {
