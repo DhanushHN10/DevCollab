@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 app.use(cors({
-    origin:'http://localhost:5173'
+    origin: process.env.FRONTEND_URI || 'http://localhost:5173'
 
 }))
 app.use(passport.initialize());
