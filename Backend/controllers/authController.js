@@ -165,7 +165,8 @@ export const getMe = async (req, res) => {
 };
 
 export const googleOAuth = (req, res) => {
-  const token = generateAuthToken(req.user._id);
+  // const token = generateAuthToken(req.user._id);
+  const token = generateAuthToken(req.user);
   const redirectPath = req.user.profileCompleted ? 'dashboard' : 'complete-profile';
   res.redirect(`${process.env.CLIENT_REDIRECT_URL}/${redirectPath}?token=${token}`); 
 };
