@@ -1656,7 +1656,7 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  
  ### Feature Requests
  
- We love new ideas! Open an issue with the "Feature Request" label.
+ I would love to hear new ideas! Open an issue with the "Feature Request" label.
  
  **Feature Request Template:**
  
@@ -1685,7 +1685,7 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  
  ## 🚀 Future Roadmap
  
- ### Phase 1: Core Enhancements (Q1 2026)
+ ### Phase 1: Core Enhancements
  
  #### Real-Time Features
  
@@ -1696,12 +1696,12 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  
  #### Search & Discovery
  
- - ✅ **Advanced Search**: Multi-criteria filtering with sorting
+ - ✅ **Advanced Search**: Multi-criteria filtering with sorting and NLP supported search
  - ✅ **Trending Projects**: Most active/popular projects
  - ✅ **Developer Leaderboard**: Contribution metrics
  - ✅ **Tag-Based Discovery**: Browse by technology tags
  
- ### Phase 2: Collaboration Tools (Q2 2026)
+ ### Phase 2: Collaboration Tools 
  
  #### Project Management
  
@@ -1709,14 +1709,16 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  - ✅ **File Sharing**: Upload and share project files
  - ✅ **Code Repository Integration**: Link GitHub/GitLab repos
  - ✅ **Milestone Tracking**: Set and monitor project milestones
+
  
- #### Communication
+ 
+ <!-- #### Communication
  
  - ✅ **Video Calls**: Integrated video conferencing
- - ✅ **Screen Sharing**: Collaborate in real-time
- - ✅ **Code Review Tools**: In-platform code review
+ - ✅ **Screen Sharing**: Collaborate in real time
+ - ✅ **Code Review Tools**: In platform code review
  
- ### Phase 3: AI & Analytics (Q3 2026)
+ ### Phase 3: AI & Analytics
  
  #### Enhanced AI Features
  
@@ -1729,9 +1731,9 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  
  - ✅ **User Analytics**: Track your collaboration activity
  - ✅ **Project Analytics**: Monitor project health and progress
- - ✅ **Recommendation Insights**: Why projects were recommended
+ - ✅ **Recommendation Insights**: Why projects were recommended -->
  
- ### Phase 4: Monetization & Growth (Q4 2026)
+ <!-- ### Phase 4: Monetization & Growth (Q4 2026)
  
  #### Premium Features
  
@@ -1752,23 +1754,23 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  - ✅ **Team Accounts**: Organization-level accounts
  - ✅ **Private Projects**: Enterprise-only project visibility
  - ✅ **Custom Integrations**: API for third-party integrations
- - ✅ **On-Premise Deployment**: Self-hosted option for enterprises
+ - ✅ **On-Premise Deployment**: Self-hosted option for enterprises -->
  
  ### Technical Improvements
  
  #### Performance
  
  - ✅ **Caching Layer**: Redis for faster data retrieval
- - ✅ **CDN Integration**: Global content delivery
+ <!-- - ✅ **CDN Integration**: Global content delivery -->
  - ✅ **Database Optimization**: Indexing and query optimization
- - ✅ **Load Balancing**: Horizontal scaling for high traffic
+ <!-- - ✅ **Load Balancing**: Horizontal scaling for high traffic -->
  
  #### Testing & Quality
  
  - ✅ **Unit Tests**: Comprehensive test coverage
  - ✅ **Integration Tests**: End-to-end testing
  - ✅ **CI/CD Pipeline**: Automated testing and deployment
- - ✅ **Performance Monitoring**: APM tools (New Relic, DataDog)
+ <!-- - ✅ **Performance Monitoring**: APM tools (New Relic, DataDog) -->
  
  #### DevOps
  
@@ -1834,15 +1836,15 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  
  ### Connect With Us
  
- - **GitHub Repository**: [https://github.com/yourusername/DevCollab](https://github.com/yourusername/DevCollab)
- - **Issue Tracker**: [https://github.com/yourusername/DevCollab/issues](https://github.com/yourusername/DevCollab/issues)
- - **Discussions**: [https://github.com/yourusername/DevCollab/discussions](https://github.com/yourusername/DevCollab/discussions)
+ - **GitHub Repository**: [https://github.com/yourusername/DevCollab](https://github.com/DhanushHN10/DevCollab)
+ - **Issue Tracker**: [https://github.com/yourusername/DevCollab/issues](https://github.com/DhanushHN10/DevCollab/issues)
+ - **Discussions**: [https://github.com/yourusername/DevCollab/discussions](https://github.com/DhanushHN10/DevCollab/discussions)
  
  ### Project Maintainer
  
  - **Name**: Dhanush H N
- - **Role**: Full-Stack Developer & Project Lead
- - **GitHub**: [@dhanushhn05](https://github.com/dhanushhn05)
+ - **Role**: Full-Stack Developer
+ - **GitHub**: [@DhanushHN10](https://github.com/DhanushHN10)
  
  ### Support
  
@@ -1852,19 +1854,7 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  
  ---
  
- ## 🙏 Acknowledgments
  
- ### Technologies & Libraries
- 
- Special thanks to the creators and maintainers of:
- 
- - **React Team** - For the amazing UI library
- - **Vite** - For the blazing-fast build tool
- - **Express.js** - For the minimalist web framework
- - **MongoDB** - For the flexible NoSQL database
- - **Scikit-learn** - For machine learning tools
- - **shadcn/ui** - For beautiful UI components
- - **TailwindCSS** - For utility-first CSS framework
  
  ### Inspiration
  
@@ -1875,11 +1865,11 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  - **Devpost** - For hackathon collaboration workflows
  - **Stack Overflow** - For developer community engagement
  
- ### Resources
+ <!-- ### Resources
  
  - **MDN Web Docs** - Comprehensive web development documentation
  - **freeCodeCamp** - Educational resources and community
- - **Dev.to Community** - Inspiration and best practices
+ - **Dev.to Community** - Inspiration and best practices -->
  
  ---
  
