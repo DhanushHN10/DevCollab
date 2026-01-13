@@ -1,4 +1,4 @@
-# DevCollab : AI - Pwered Collaboration Platform for Developers  ( MVP )
+# DevCollab : AI - Powered Collaboration Platform for Developers  ( MVP )
 
 **Deployed Link**: https://dhanushhn05-devcolab-webapp.netlify.app/
 
