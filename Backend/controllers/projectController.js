@@ -2,6 +2,7 @@ import Project from "../models/Project.js";
 import Workspace from "../models/Workspace.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
 import User from "../models/User.js";
+import { sendProjectInvitationEmail, sendProjectRequestToJoinEmail } from "../services/emailService.js";
 
 
 export const createProject = async(req,res) =>{
@@ -179,16 +180,11 @@ if (interests && interests.trim() !== '') {
   query.interests = { $in: interestArray };
 }
 
-
- 
-    // if (availability && availability !== 'Any') {
-    //   query.availability = availability;
-    // }
     if (availability && availability !== 'Any' && availability !== 'undefined') {
   query.availability = availability;
 }
 
-// console.log(`HAHAHAHA : ${query}`);
+
     const users = await User.find(query).select('_id name username skills interests availability links');
 // add avatar later
     res.json({ users });
@@ -265,6 +261,8 @@ export const getWorkspace = async (req, res) => {
 
 
 export const inviteToProject = async (req,res) => {
+
+  try{
     const projectId = req.params.projectId;
     const userIdToInvite= req.params.userIdToInvite;
   
@@ -312,11 +310,32 @@ export const inviteToProject = async (req,res) => {
     project.pendingInvites.push(userIdToInvite);
     await project.save();
 
+
+    await project.populate("createdBy", "username email");
+
+    const invitedUser= await User.findById(userIdToInvite).select("email");
+
+    if(!invitedUser){
+        return res.status(404).json({
+            message: "User to invite not found"
+        });
+    }
+
+    await sendProjectInvitationEmail(invitedUser.email, project.title, project.createdBy.username);
     res.status(200).json({
         message: "Invite sent successfully",
         projectId: project._id,
         userIdToInvite: userIdToInvite
     });
+
+  }
+
+  catch(err){
+    console.error(err);
+    res.status(500).json({
+        message:"Internal Server Error",
+    });
+  }
 
 };
 
@@ -324,7 +343,9 @@ export const inviteToProject = async (req,res) => {
 export const requestToJoin = async(req,res) =>{
     const { projectId } = req.params;
 
-    const project = await Project.findById(projectId);
+    try{
+
+    const project = await Project.findById(projectId).populate("createdBy", "email");
     if(!project)
     {
         return res.status(404).json({
@@ -344,12 +365,25 @@ export const requestToJoin = async(req,res) =>{
     }
 
     project.joinRequests.push(userIdToInvite);
-
     await project.save();
+
+    const projectOwnerEmail = project.createdBy.email;
+
+    await sendProjectRequestToJoinEmail(userIdToInvite, project.title, projectOwnerEmail);
 
     res.status(200).json({
         message:"Request successfully sent"
     })
+
+  }
+
+  catch(err){
+    console.error(err);
+    res.status(500).json({
+        message:"Intternal server Error",
+  
+    });
+  }
 
 };
 

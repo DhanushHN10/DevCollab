@@ -62,7 +62,7 @@ export default function Homepage() {
 
       {/* Footer */}
       <footer className="fixed bottom-4 w-full text-center text-white/80 text-sm z-10" >
-        © 2025 DevCollab — Built by Dhanush H N 🖥️
+        © 2026 DevCollab — Built by Dhanush H N 🖥️
       </footer>
     </div>
   );
