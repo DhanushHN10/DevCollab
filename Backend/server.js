@@ -17,6 +17,10 @@ const app= express();
 const PORT = process.env.PORT || 5000;
 connectDB();
 
+import {createServer} from 'http';
+import {Server} from 'socket.io';
+
+
 const allowedOrigins = [
   'http://localhost:5173',
   process.env.FRONTEND_URI
@@ -52,8 +56,28 @@ app.get('/', (req, res) => {
     res.send('DevCollab API is running...');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
+
+const server = createServer(app);
+const io = new Server(server, {
+  cors : {
+    origin: allowedOrigins,
+    credentials: true
+  }
+})
+
+// TO Add JWT authentication middelewaere for the Socket.io connection.
+
+io.on('connection', (socket) =>{
+  const userId = socket.handshake.auth.userId;
+  socket.join(`user:${userId}`);
 });
+
+server.listen(PORT, () => {
+  console.log(`Socket Server is running on port ${PORT}`);
+})
+
 
 
