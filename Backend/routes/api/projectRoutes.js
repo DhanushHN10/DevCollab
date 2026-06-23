@@ -22,7 +22,7 @@ import {
 
 } from '../../controllers/projectController.js'
 
-import { checkProjectMembership } from '../../middleware/checkPrijectMember.js';
+import { checkProjectMembership } from '../../middleware/checkProjectMember.js';
 
 const router = express.Router();
 

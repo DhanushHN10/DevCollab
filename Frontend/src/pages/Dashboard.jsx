@@ -101,6 +101,7 @@ export default function Dashboard() {
 
     if (tokenFromUrl) {
       localStorage.setItem("token", tokenFromUrl);
+      window.dispatchEvent(new Event("auth-token-changed"));
 
       navigate(location.pathname, { replace: true });
     }

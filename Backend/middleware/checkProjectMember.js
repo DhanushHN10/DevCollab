@@ -1,5 +1,3 @@
-// middleware/checkProjectMembership.js
-
 import Project from '../models/Project.js';
 
 export const checkProjectMembership = async (req, res, next) => {
@@ -12,7 +10,7 @@ export const checkProjectMembership = async (req, res, next) => {
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
-
+    
     const isOwner = project.createdBy.toString() === userId.toString();
     const isCollaborator = project.collaborators.includes(userId);
 

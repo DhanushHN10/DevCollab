@@ -4,7 +4,7 @@ import axios from 'axios';
 import Project from "../models/Project.js";
 import User from "../models/User.js";
 
-
+const DEBUG = process.env.DEBUG === 'true';
 export const recommendProjects = async (req, res) => {
   try {
     const userId= req.user._id;
@@ -39,12 +39,12 @@ export const recommendProjects = async (req, res) => {
       projects: formattedProjects,
     };
 
-       console.log("Sending this payload to Flask:", JSON.stringify(payload, null, 2));
+       if(DEBUG)console.log("Sending this payload to Flask:", JSON.stringify(payload, null, 2));
 
      const response = await axios.post(`${flaskUrl}/recommend-projects`, payload);
 
 
-     console.log("Received this data from Flask:", response.data);
+     if(DEBUG) console.log("Received this data from Flask:", response.data);
 
     const recommendations = response.data;
     const recommendedIds = recommendations.map((rec) => rec._id);

@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Particles from "../blocks/Backgrounds/Particles/Particles";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 // import Navbar2 from "../tools/Nav_logsign";
-import { Textarea } from "../components/ui/textarea";
-import Select from "react-select";
-import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-
-
-
+import { useEffect } from "react";
+import Select from "react-select";
+import { Textarea } from "../components/ui/textarea";
 
 const skillsOptions = [
   { label: "React", value: "React" },
@@ -94,62 +91,57 @@ export default function CompleteProfilePage() {
     location: "",
   });
 
-  useEffect(()=>{
-    const checkProfileStatus= async() =>{
-
+  useEffect(() => {
+    const checkProfileStatus = async () => {
       const params = new URLSearchParams(location.search);
-    const tokenFromUrl = params.get("token");
+      const tokenFromUrl = params.get("token");
 
+      if (tokenFromUrl) {
+        localStorage.setItem("token", tokenFromUrl);
+        window.dispatchEvent(new Event("auth-token-changed"));
+        const path = location.pathname;
+        navigate(path, { replace: true });
+      }
 
-       if (tokenFromUrl) {
-      localStorage.setItem("token", tokenFromUrl);
-      const path = location.pathname;
-      navigate(path, { replace: true });
-    }
-
-      const token= localStorage.getItem("token");
-      if(!token){
-        navigate('/');
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
         return;
       }
 
-
       try {
         const decoded = jwtDecode(token);
-      const userId = decoded.id; 
-      console.log("User ID from token:", userId);
+        const userId = decoded.id;
+        console.log("User ID from token:", userId);
       } catch (error) {
-         console.error("Failed to check profile status", error);
+        console.error("Failed to check profile status", error);
         navigate("/");
-        
       }
     };
-       checkProfileStatus();
+    checkProfileStatus();
+  }, [navigate, location]);
 
-  },[navigate,location]);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
-
-  if (["linkedin", "github", "portfolio"].includes(name)) {
-    setFormData((prev) => ({
-      ...prev,
-      links: {
-        ...prev.links,
+    if (["linkedin", "github", "portfolio"].includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        links: {
+          ...prev.links,
+          [name]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
         [name]: value,
-      },
-    }));
-  } else {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
-};
+      }));
+    }
+  };
 
   const handleSubmit = async () => {
     try {
-
       const token = localStorage.getItem("token");
       if (!token) {
         alert("No token found. Please log in.");
@@ -187,9 +179,9 @@ const handleChange = (e) => {
   };
 
   return (
-    <div className="w-screen h-screen relative overflow-auto bg-black " >
+    <div className='w-screen h-screen relative overflow-auto bg-black '>
       <Particles
-        className="absolute inset-0 overflow-y-visible min"
+        className='absolute inset-0 overflow-y-visible min'
         particleCount={900}
         particleSpread={20}
         speed={0.14}
@@ -203,47 +195,48 @@ const handleChange = (e) => {
         <Navbar2 />
       </div> */}
 
-      <div className="flex items-center justify-center min-h-full px-4 z-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 my-5">
-       
-        <div className="w-full max-w-xl bg-white/10 backdrop-blur-md border border-white/40 shadow-4xl rounded-2xl p-8 text-white z-10 space-y-6">
-         <h1 className="text-3xl font-bold text-center mb-6"><span className="text-white/70">Dev</span><span className="text-blue-500/70">Collab</span></h1>
-         
-          <h3 className="text-3xl font-bold text-center mb-2">
-            <span className="text-white/70">Complete Your</span>{" "}
-            <span className="text-blue-500/70">Profile</span>
+      <div className='flex items-center justify-center min-h-full px-4 z-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 my-5'>
+        <div className='w-full max-w-xl bg-white/10 backdrop-blur-md border border-white/40 shadow-4xl rounded-2xl p-8 text-white z-10 space-y-6'>
+          <h1 className='text-3xl font-bold text-center mb-6'>
+            <span className='text-white/70'>Dev</span>
+            <span className='text-blue-500/70'>Collab</span>
+          </h1>
+
+          <h3 className='text-3xl font-bold text-center mb-2'>
+            <span className='text-white/70'>Complete Your</span>{" "}
+            <span className='text-blue-500/70'>Profile</span>
           </h3>
 
-          <div className="space-y-4">
-            
+          <div className='space-y-4'>
             <Input
-              name="linkedin"
-              placeholder="LinkedIn URL"
+              name='linkedin'
+              placeholder='LinkedIn URL'
               value={formData.links.linkedin}
               onChange={handleChange}
-              className="text-white"
+              className='text-white'
             />
             <Input
-              name="github"
-              placeholder="GitHub URL"
+              name='github'
+              placeholder='GitHub URL'
               value={formData.links.github}
               onChange={handleChange}
-              className="text-white"
+              className='text-white'
             />
             <Input
-              name="portfolio"
-              placeholder="Portfolio URL"
+              name='portfolio'
+              placeholder='Portfolio URL'
               value={formData.links.portfolio}
               onChange={handleChange}
-              className="text-white"
+              className='text-white'
             />
 
             {/* Multi-select Skills */}
-            <div className="text-black">
+            <div className='text-black'>
               <Select
                 isMulti
-                name="skills"
+                name='skills'
                 options={skillsOptions}
-                placeholder="Select Skills"
+                placeholder='Select Skills'
                 value={formData.skills}
                 onChange={(selected) =>
                   setFormData({ ...formData, skills: selected })
@@ -252,12 +245,12 @@ const handleChange = (e) => {
             </div>
 
             {/* Multi-select Interests */}
-            <div className="text-black">
+            <div className='text-black'>
               <Select
                 isMulti
-                name="interests"
+                name='interests'
                 options={interestsOptions}
-                placeholder="Select Interests"
+                placeholder='Select Interests'
                 value={formData.interests}
                 onChange={(selected) =>
                   setFormData({ ...formData, interests: selected })
@@ -267,40 +260,40 @@ const handleChange = (e) => {
 
             {/* Availability Dropdown */}
             <select
-              name="availability"
+              name='availability'
               value={formData.availability}
               onChange={handleChange}
-              className="w-full px-3 py-2 rounded-md bg-black/70 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className='w-full px-3 py-2 rounded-md bg-black/70 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500'
             >
-              <option value="">Select Availability</option>
-              <option value="Available">Available</option>
-              <option value="Busy">Busy</option>
-              <option value="Short-Term">Short-Term</option>
-              <option value="Looking for Projects">Looking for Projects</option>
-              <option value="Not specified">Not specified</option>
+              <option value=''>Select Availability</option>
+              <option value='Available'>Available</option>
+              <option value='Busy'>Busy</option>
+              <option value='Short-Term'>Short-Term</option>
+              <option value='Looking for Projects'>Looking for Projects</option>
+              <option value='Not specified'>Not specified</option>
             </select>
 
             {/* Location & Bio */}
             <Input
-              name="location"
-              placeholder="Your Location (e.g., Bengaluru, Remote)"
+              name='location'
+              placeholder='Your Location (e.g., Bengaluru, Remote)'
               value={formData.location}
               onChange={handleChange}
-              className="text-white"
+              className='text-white'
             />
 
             <Textarea
-              name="Bio"
-              placeholder="Write a short bio..."
+              name='Bio'
+              placeholder='Write a short bio...'
               value={formData.Bio}
               onChange={handleChange}
-              className="text-white"
+              className='text-white'
             />
           </div>
 
           <Button
             onClick={handleSubmit}
-            className="w-full bg-white/20 hover:bg-white/70 hover:text-black border border-white text-white transition-transform duration-200 hover:scale-105"
+            className='w-full bg-white/20 hover:bg-white/70 hover:text-black border border-white text-white transition-transform duration-200 hover:scale-105'
           >
             Complete Profile
           </Button>
@@ -309,4 +302,3 @@ const handleChange = (e) => {
     </div>
   );
 }
-
