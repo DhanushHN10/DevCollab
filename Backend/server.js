@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 import { createServer } from "http";
+import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
 
 const allowedOrigins = ["http://localhost:5173", process.env.FRONTEND_URI];
@@ -63,13 +64,28 @@ const io = new Server(server, {
   },
 });
 
-// TO Add JWT authentication middelewaere for the Socket.io connection.
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+
+  if (!token) {
+    return next(new Error("Authentication token missing"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.data.userId = decoded.id;
+    socket.data.username = decoded.username;
+    console.log("Socket connected for user:", decoded.username);
+    return next();
+  } catch (error) {
+    return next(new Error("Authentication failed"));
+  }
+});
 
 io.on("connection", (socket) => {
-  const userId = socket.handshake.auth.userId;
-  if (userId) {
-    socket.join(`user:${userId}`);
-  }
+  const userId = socket.data.userId;
+  socket.join(`user:${userId}`);
+
   socket.on("disconnect", () => {});
 });
 

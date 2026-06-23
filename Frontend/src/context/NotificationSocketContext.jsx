@@ -1,9 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import API from "../api/axios";
-import getUserIdFromToken from "../utils/getUserIdFromToken";
-
-const NotificationSocketContext = createContext(null);
+import { NotificationSocketContext } from "./notificationSocketContext.js";
 
 const buildSocketUrl = () => {
   const baseUrl =
@@ -15,11 +13,11 @@ export function NotificationSocketProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [socketConnected, setSocketConnected] = useState(false);
-  const [userId, setUserId] = useState(() => getUserIdFromToken());
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   useEffect(() => {
     const syncAuthState = () => {
-      setUserId(getUserIdFromToken());
+      setToken(localStorage.getItem("token"));
     };
 
     window.addEventListener("auth-token-changed", syncAuthState);
@@ -32,7 +30,7 @@ export function NotificationSocketProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!userId) {
+    if (!token) {
       setNotifications([]);
       setUnreadCount(0);
       setSocketConnected(false);
@@ -43,7 +41,7 @@ export function NotificationSocketProvider({ children }) {
     const socketUrl = buildSocketUrl();
 
     const socket = io(socketUrl, {
-      auth: { userId },
+      auth: { token },
       transports: ["websocket", "polling"],
     });
 
@@ -85,7 +83,7 @@ export function NotificationSocketProvider({ children }) {
       active = false;
       socket.disconnect();
     };
-  }, [userId]);
+  }, [token]);
 
   const markNotificationAsRead = async (notificationId) => {
     try {
@@ -141,14 +139,3 @@ export function NotificationSocketProvider({ children }) {
   );
 }
 
-export function useNotificationSocket() {
-  const context = useContext(NotificationSocketContext);
-
-  if (!context) {
-    throw new Error(
-      "useNotificationSocket must be used within NotificationSocketProvider",
-    );
-  }
-
-  return context;
-}

@@ -2,7 +2,7 @@ import { Bell, CheckCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DevCollabLogo from "../assets/DevCollab_Logo.png";
-import { useNotificationSocket } from "../context/NotificationSocketContext.jsx";
+import useNotificationSocket from "../context/useNotificationSocket.js";
 import logout from "../utils/logout.js";
 export default function MainNavbar() {
   const navigate = useNavigate();
@@ -17,7 +17,6 @@ export default function MainNavbar() {
     markNotificationAsRead,
     markAllNotificationsAsRead,
   } = useNotificationSocket();
-
   const visibleNotifications = useMemo(
     () => notifications.slice(0, 6),
     [notifications],
