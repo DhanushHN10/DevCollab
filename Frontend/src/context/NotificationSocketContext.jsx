@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import API from "../api/axios";
+import { buildSocketUrl } from "../utils/socketUrl.js";
 import { NotificationSocketContext } from "./notificationSocketContext.js";
-
-const buildSocketUrl = () => {
-  const baseUrl =
-    import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || "";
-  return baseUrl.replace(/\/api\/?$/, "");
-};
 
 export function NotificationSocketProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
@@ -138,4 +133,3 @@ export function NotificationSocketProvider({ children }) {
     </NotificationSocketContext.Provider>
   );
 }
-

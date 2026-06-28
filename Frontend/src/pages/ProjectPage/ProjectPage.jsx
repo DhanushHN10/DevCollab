@@ -1,30 +1,29 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import MainNavbar from '../../tools/MainNavbar';
-import SearchAndInviteDevs from './searchAndInviteDevs';
-import API from '../../api/axios';
-
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import API from "../../api/axios";
+import MainNavbar from "../../tools/MainNavbar";
+import SearchAndInviteDevs from "./searchAndInviteDevs";
 
 export default function ProjectPage() {
   const { projectId } = useParams();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [pendingInvites, setPendingInvites] = useState([]);
   const [joinRequests, setJoinRequests] = useState([]);
 
-
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const res = await API.get(`/api/projects/${projectId}/overview`)
-        
+        const res = await API.get(`/api/projects/${projectId}/overview`);
+
         setProject(res.data.project);
         setIsOwner(res.data.isOwner);
         setPendingInvites(res.data.project.pendingInvites);
-        setJoinRequests(res.data.project.joinRequests)
+        setJoinRequests(res.data.project.joinRequests);
       } catch (err) {
         console.error(err);
       }
@@ -33,95 +32,157 @@ export default function ProjectPage() {
     fetchProject();
   }, [projectId]);
 
-  if (!project) return <div className="text-white">Loading...</div>;
+  if (!project) return <div className='text-white'>Loading...</div>;
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
-    if (section) section.scrollIntoView({ behavior: 'smooth' });
+    if (section) section.scrollIntoView({ behavior: "smooth" });
   };
 
-  const unsendInvite = async(unsendInviteUserId) =>{
-try {
-    await API.delete(
-      `/api/projects/${projectId}/invite/${unsendInviteUserId}` );
-
-    setPendingInvites((items) => items.filter((invite)=> invite._id !== unsendInviteUserId))
-  } catch (error) {
-    console.error("Failed to unsend invite: ", error )
-    
-  }
-  }
-
-  const acceptRequest= async (acceptRequestedUserId) => {
+  const unsendInvite = async (unsendInviteUserId) => {
     try {
-      await API.put(`/api/projects/${projectId}/request/accept/${acceptRequestedUserId}`, {},
+      await API.delete(
+        `/api/projects/${projectId}/invite/${unsendInviteUserId}`,
       );
 
-        setJoinRequests((items) => items.filter((dev) => dev._id !== acceptRequestedUserId))
+      setPendingInvites((items) =>
+        items.filter((invite) => invite._id !== unsendInviteUserId),
+      );
     } catch (error) {
-
-       console.error("Failed to accept request: ", error);
+      console.error("Failed to unsend invite: ", error);
     }
-  }
+  };
 
-    const rejectRequest = async (rejectRequestedUserId) => {
+  const acceptRequest = async (acceptRequestedUserId) => {
     try {
-      await API.delete(`/api/projects/${projectId}/request/reject/${rejectRequestedUserId}`);
+      await API.put(
+        `/api/projects/${projectId}/request/accept/${acceptRequestedUserId}`,
+        {},
+      );
 
-        setJoinRequests((items) => items.filter((dev) => dev._id !== rejectRequestedUserId))
+      setJoinRequests((items) =>
+        items.filter((dev) => dev._id !== acceptRequestedUserId),
+      );
     } catch (error) {
-
-       console.error("Failed to reject request: ", error);
+      console.error("Failed to accept request: ", error);
     }
-  }
+  };
 
+  const rejectRequest = async (rejectRequestedUserId) => {
+    try {
+      await API.delete(
+        `/api/projects/${projectId}/request/reject/${rejectRequestedUserId}`,
+      );
 
+      setJoinRequests((items) =>
+        items.filter((dev) => dev._id !== rejectRequestedUserId),
+      );
+    } catch (error) {
+      console.error("Failed to reject request: ", error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0e0e0e] text-white">
+    <div className='min-h-screen bg-[#0e0e0e] text-white'>
       <MainNavbar />
-      <div className="w-full px-6 pt-20">
+      <div className='w-full px-6 pt-20'>
         {/* Sub-navigation */}
-        <div className="static top-16 z-10 bg-[#323030] py-3 px-4 rounded-xl shadow-md flex flex-wrap justify-center gap-3 mb-6 border border-white/10">
-          <Button onClick={() => scrollToSection('projectInfo')} variant="outline" className="bg-white/10 text-white hover:bg-white/20">Project Info</Button>
-          <Button onClick={() => scrollToSection('collaborators')} variant="outline" className="bg-white/10 text-white hover:bg-white/20">Collaborators</Button>
+        <div className='static top-16 z-10 bg-[#323030] py-3 px-4 rounded-xl shadow-md flex flex-wrap justify-center gap-3 mb-6 border border-white/10'>
+          <Button
+            onClick={() => scrollToSection("projectInfo")}
+            variant='outline'
+            className='bg-white/10 text-white hover:bg-white/20'
+          >
+            Project Info
+          </Button>
+          <Button
+            onClick={() => scrollToSection("collaborators")}
+            variant='outline'
+            className='bg-white/10 text-white hover:bg-white/20'
+          >
+            Collaborators
+          </Button>
           {isOwner && (
             <>
-              <Button onClick={() => scrollToSection('searchDev')} variant="outline" className="bg-white/10 text-white hover:bg-white/20">Search & Invite Devs</Button>
-              <Button onClick={() => scrollToSection('invites')} variant="outline" className="bg-white/10 text-white hover:bg-white/20">View Invites</Button>
-              <Button onClick={() => scrollToSection('joinRequests')} variant="outline" className="bg-white/10 text-white hover:bg-white/20">Join Requests</Button>
+              <Button
+                onClick={() => scrollToSection("searchDev")}
+                variant='outline'
+                className='bg-white/10 text-white hover:bg-white/20'
+              >
+                Search & Invite Devs
+              </Button>
+              <Button
+                onClick={() => scrollToSection("invites")}
+                variant='outline'
+                className='bg-white/10 text-white hover:bg-white/20'
+              >
+                View Invites
+              </Button>
+              <Button
+                onClick={() => scrollToSection("joinRequests")}
+                variant='outline'
+                className='bg-white/10 text-white hover:bg-white/20'
+              >
+                Join Requests
+              </Button>
             </>
           )}
-          <Button onClick={() => scrollToSection('workspace')} className="bg-purple-600 hover:bg-purple-700 text-white">Go to Workspace</Button>
+          <Button
+            onClick={() => scrollToSection("workspace")}
+            className='bg-purple-600 hover:bg-purple-700 text-white'
+          >
+            Go to Workspace
+          </Button>
         </div>
 
         {/* Project Title */}
-        
-        <div className="mb-6">
-          <h1 className="text-4xl font-black mb-1">{project.title}</h1>
-          <p className="text-white/70 mt-2 pt-4">{project.description}</p>
+
+        <div className='mb-6'>
+          <h1 className='text-4xl font-black mb-1'>{project.title}</h1>
+          <p className='text-white/70 mt-2 pt-4'>{project.description}</p>
         </div>
 
         {/* Tech Stack and Tags */}
-        <div className="flex gap-2 flex-wrap mb-10 justify-center">
+        <div className='flex gap-2 flex-wrap mb-10 justify-center'>
           {project.techStack.map((tech, idx) => (
-            <span key={idx} className="bg-white/10 border border-white/20 px-3 py-1 rounded-full text-sm">{tech}</span>
+            <span
+              key={idx}
+              className='bg-white/10 border border-white/20 px-3 py-1 rounded-full text-sm'
+            >
+              {tech}
+            </span>
           ))}
           {project.tags.map((tag, idx) => (
-            <span key={idx} className="bg-white/10 border border-white/20 px-3 py-1 rounded-full text-sm">#{tag}</span>
+            <span
+              key={idx}
+              className='bg-white/10 border border-white/20 px-3 py-1 rounded-full text-sm'
+            >
+              #{tag}
+            </span>
           ))}
         </div>
 
         {/* Collaborators */}
-        <div id="collaborators" className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4 ">Collaborators</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div id='collaborators' className='mb-12'>
+          <h2 className='text-2xl font-semibold mb-4 '>Collaborators</h2>
+          <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
             {project.collaborators.map((collab) => (
-              <Card key={collab._id} className="bg-white/5 border border-white/20 justify-center items-center h-max w-max p-4">
-                <CardContent className="p-4">
-                    <img src={collab.avatar} alt="Profile" className='w-10 h-10 rounded-4xl'/>
-                  <h3 className="text-lg font-semibold text-white/80 pt-2">{collab.name}</h3>
-                  <p className=" pt-2 text-sm text-white/70">@{collab.username}</p>
+              <Card
+                key={collab._id}
+                className='bg-white/5 border border-white/20 justify-center items-center h-max w-max p-4'
+              >
+                <CardContent className='p-4'>
+                  <img
+                    src={collab.avatar}
+                    alt='Profile'
+                    className='w-10 h-10 rounded-4xl'
+                  />
+                  <h3 className='text-lg font-semibold text-white/80 pt-2'>
+                    {collab.name}
+                  </h3>
+                  <p className=' pt-2 text-sm text-white/70'>
+                    @{collab.username}
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -131,104 +192,118 @@ try {
         {/* Owner-Only Sections */}
         {isOwner && (
           <>
-          <div id="searchDev" className='text-center h-[max-content] my-4 py-3 flex justify-center'>
-            <div className="mb-12 w-5xl justify-center items-center">
-              <h2 className="text-2xl font-semibold mb-5 pb-3   ">Search & Invite Developers</h2>
-              {/* <p className="text-white/60">(Search UI will be implemented here)</p> */}
-              <SearchAndInviteDevs projectId = {projectId}className="relative"
-               onInviteSuccess={(invitedUser) => {
-    setPendingInvites((prev) => [...prev, invitedUser]);
-  }}
-              
-              />
+            <div
+              id='searchDev'
+              className='text-center h-[max-content] my-4 py-3 flex justify-center'
+            >
+              <div className='mb-12 w-5xl justify-center items-center'>
+                <h2 className='text-2xl font-semibold mb-5 pb-3   '>
+                  Search & Invite Developers
+                </h2>
+                {/* <p className="text-white/60">(Search UI will be implemented here)</p> */}
+                <SearchAndInviteDevs
+                  projectId={projectId}
+                  className='relative'
+                  onInviteSuccess={(invitedUser) => {
+                    setPendingInvites((prev) => [...prev, invitedUser]);
+                  }}
+                />
+              </div>
             </div>
+
+            <div id='invites' className='mb-12'>
+              <h2 className='text-2xl font-semibold mb-4 text-center'>
+                Invitation Status
+              </h2>
+
+              {pendingInvites.length === 0 ? (
+                <p className='text-white/60 text-center'>No pending invites.</p>
+              ) : (
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                  {pendingInvites.map((user) => (
+                    <Card
+                      key={user._id}
+                      className='bg-white/5 border border-white/20 flex flex-col items-center p-4'
+                    >
+                      <CardContent className='flex flex-col items-center text-center'>
+                        <img
+                          src={user.avatar}
+                          alt='avatar'
+                          className='w-12 h-12 rounded-full mb-3'
+                        />
+                        <h3 className='text-lg font-semibold text-white/80'>
+                          {user.name}
+                        </h3>
+                        <p className='text-sm text-white/60 mb-3'>
+                          @{user.username}
+                        </p>
+                        <Button
+                          onClick={() => unsendInvite(user._id)}
+                          className='bg-red-600 hover:bg-red-700 text-white mt-2'
+                        >
+                          Unsend Invite
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div id="invites" className="mb-12">
-  <h2 className="text-2xl font-semibold mb-4 text-center">Invitation Status</h2>
+            <div id='joinRequests' className='mb-12'>
+              <h2 className='text-2xl font-semibold mb-4 text-center'>
+                Join Requests
+              </h2>
 
-  {pendingInvites.length === 0 ? (
-    <p className="text-white/60 text-center">No pending invites.</p>
-  ) : (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {pendingInvites.map((user) => (
-        <Card
-          key={user._id}
-          className="bg-white/5 border border-white/20 flex flex-col items-center p-4"
-        >
-          <CardContent className="flex flex-col items-center text-center">
-            <img
-              src={user.avatar}
-              alt="avatar"
-              className="w-12 h-12 rounded-full mb-3"
-            />
-            <h3 className="text-lg font-semibold text-white/80">
-              {user.name}
-            </h3>
-            <p className="text-sm text-white/60 mb-3">@{user.username}</p>
-            <Button
-              onClick={() => unsendInvite(user._id)}
-              className="bg-red-600 hover:bg-red-700 text-white mt-2"
-            >
-              Unsend Invite
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )}
-</div>
+              {joinRequests.length === 0 ? (
+                <p className='text-white/60 text-center'>No join requests.</p>
+              ) : (
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                  {joinRequests.map((user) => (
+                    <Card
+                      key={user._id}
+                      className='bg-white/5 border border-white/20 flex flex-col items-center p-4'
+                    >
+                      <CardContent className='flex flex-col items-center text-center'>
+                        <img
+                          src={user.avatar}
+                          alt='avatar'
+                          className='w-12 h-12 rounded-full mb-3'
+                        />
+                        <h3 className='text-lg font-semibold text-white/80'>
+                          {user.name}
+                        </h3>
+                        <p className='text-sm text-white/60 mb-3'>
+                          @{user.username}
+                        </p>
+                        <Button
+                          onClick={() => rejectRequest(user._id)}
+                          className='bg-red-600 hover:bg-red-700 text-white mt-2'
+                        >
+                          Reject Request
+                        </Button>
 
-
-                        <div id="joinRequests" className="mb-12">
-  <h2 className="text-2xl font-semibold mb-4 text-center">Join Requests</h2>
-
-  {joinRequests.length === 0 ? (
-    <p className="text-white/60 text-center">No join requests.</p>
-  ) : (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {joinRequests.map((user) => (
-        <Card
-          key={user._id}
-          className="bg-white/5 border border-white/20 flex flex-col items-center p-4"
-        >
-          <CardContent className="flex flex-col items-center text-center">
-            <img
-              src={user.avatar}
-              alt="avatar"
-              className="w-12 h-12 rounded-full mb-3"
-            />
-            <h3 className="text-lg font-semibold text-white/80">
-              {user.name}
-            </h3>
-            <p className="text-sm text-white/60 mb-3">@{user.username}</p>
-            <Button
-              onClick={() => rejectRequest(user._id)}
-              className="bg-red-600 hover:bg-red-700 text-white mt-2"
-            >
-              Reject Request
-            </Button>
-
-             <Button
-              onClick={() => acceptRequest(user._id)}
-              className="bg-red-600 hover:bg-red-700 text-white mt-2"
-            >
-              Accept Request
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )}
-</div>
-
-
+                        <Button
+                          onClick={() => acceptRequest(user._id)}
+                          className='bg-red-600 hover:bg-red-700 text-white mt-2'
+                        >
+                          Accept Request
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
 
         {/* Workspace */}
-        <div id="workspace" className="mt-12 text-center">
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl shadow-lg">
+        <div id='workspace' className='mt-12 text-center'>
+          <Button
+            className='bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl shadow-lg'
+            onClick={() => navigate(`/project/${projectId}/workspace`)}
+          >
             Enter Workspace
           </Button>
         </div>
