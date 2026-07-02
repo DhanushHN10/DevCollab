@@ -19,12 +19,13 @@ const ConversationSchema = new mongoose.Schema({
         required: true,
     }],
 
-    createdAt:{
-        type: Date,
-        default: Date.now
-    },
-});
+    // createdAt:{
+    //     type: Date,
+    //     default: Date.now
+    // },
+}, {timestamps: true});
 
+ConversationSchema.index({workspaceId:1, chatType:1});
 
 const Conversation = mongoose.model('Conversation', ConversationSchema);
 
