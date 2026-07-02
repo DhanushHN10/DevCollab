@@ -9,7 +9,13 @@ import { sendNotification } from "../services/notificationServices.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
 
 export const createProject = async (req, res) => {
+
+  // Creating Project, followed by workspace followed by Group Chat should be in a single transaction. One fails, complete roll back.
+
+  const session = await mongoose.startSession();
+
   try {
+    session.startTransaction();
     const { title, description, techStack, tags } = req.body;
 
     const newProject = new Project({
@@ -20,7 +26,7 @@ export const createProject = async (req, res) => {
       createdBy: req.user._id,
       collaborators: [req.user._id],
     });
-    await newProject.save();
+    await newProject.save({session});
 
     const workspace = new Workspace({
       project: newProject._id,
@@ -35,19 +41,32 @@ export const createProject = async (req, res) => {
       createdAt: new Date(),
     });
 
-    await workspace.save();
+    await workspace.save({session});
+
+   
+    await createGroupConversation(workspace._id, req.user._id, session);
+   
+
+    await session.commitTransaction();
+    
 
     res.status(201).json({
       message: "Project and it's Workspace Created",
       project: newProject,
       workspace: workspace,
     });
+
+    
   } catch (error) {
+    await session.abortTransaction();
     res.status(500).json({
       message: "Server Error",
       error: error.message,
     });
+  } finally {
+    session.endSession();
   }
+
 };
 
 export const getMyProjects = async (req, res) => {
