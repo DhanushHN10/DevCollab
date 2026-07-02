@@ -1,5 +1,7 @@
 export const addUserToWorkSpace  = async(projectId, userId, role='Member') =>{
-    const workspace= await Workspace.findOne({project:projectId});
+
+    try {
+        const workspace= await Workspace.findOne({project:projectId});
 
     if(!workspace)return;
 
@@ -23,6 +25,12 @@ export const addUserToWorkSpace  = async(projectId, userId, role='Member') =>{
 
   await workspace.save();
 
+  // add user to group conversation
 
+  await addUserTogroupConversation(workspace._id, userId);
 
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
 };
