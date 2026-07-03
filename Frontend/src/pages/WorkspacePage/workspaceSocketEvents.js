@@ -5,4 +5,5 @@ export const WORKSPACE_SOCKET_EVENTS = {
   DIRECT_MESSAGE: "workspace:dm:message",
   MESSAGE_RECEIVED: "workspace:message:received",
   CHAT_NOTIFICATION: "workspace:notification",
+  ERROR: "workspace:error",
 };

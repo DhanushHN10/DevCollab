@@ -20,7 +20,7 @@ const messageSchema = new mongoose.Schema(
       // required: true
     },
 
-    content: {
+    text: {
       type: String,
       required: true,
     },

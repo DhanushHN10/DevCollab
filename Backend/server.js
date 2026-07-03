@@ -11,7 +11,7 @@ import authRoutes from "./routes/api/authRoutes.js";
 import notificationRoutes from "./routes/api/notificationRoutes.js";
 import projectRoutes from "./routes/api/projectRoutes.js";
 import recommendationRoutes from "./routes/api/recommendationRoutes.js";
-
+import {handleGroupMessage, handleDirectMessage} from "./controllers/chatController.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 connectDB();
@@ -34,10 +34,7 @@ app.use(
   }),
 );
 
-// app.use(cors({
-//     origin: process.env.FRONTEND_URI
 
-// }))
 app.use(passport.initialize());
 
 app.use(express.json());
@@ -51,10 +48,6 @@ app.use("/api/notifications", notificationRoutes);
 app.get("/", (req, res) => {
   res.send("DevCollab API is running...");
 });
-
-// app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
-// });
 
 const server = createServer(app);
 const io = new Server(server, {
@@ -85,6 +78,43 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   const userId = socket.data.userId;
   socket.join(`user:${userId}`);
+
+  socket.on("workspace:join", ({workspaceId}) => {
+    socket.join(`workspace:${workspaceId}`);
+    console.log(`User ${userId} joined workspace ${workspaceId}`);
+  });
+
+  socket.on("workspace:leave", ({workspaceId}) =>{
+    socket.leave(`workspace:${workspaceId}`);
+    console.log(`User ${userId} left workspace ${workspaceId}`);
+  });
+
+  socket.on("workspace:message", async (payload) =>{
+
+    try {
+   
+       const groupMessage = await handleGroupMessage(payload);
+
+      io.to(`workspace:${payload.workspaceId}`).emit("workspace:message", groupMessage);
+
+    } catch (error) {
+      socket.emit("workspace:error", { message: error.message });
+    }
+   
+  });
+
+  socket.on("workspace:dm:message", async (payload) =>{
+    try {
+      const directMessage = await handleDirectMessage(payload);
+      io.to(`user:${payload.recipientId}`).emit("workspace:dm:message", directMessage);
+
+      // to also send to other open tabs of the sender so that everywhere it gets updated and stays consistent as a socket layer functionality:
+      io.to(`user:${payload.senderId}`).emit("workspace:dm:message", directMessage);
+      
+    } catch (error) {
+    socket.emit("workspace:error", { message: error.message });
+    }
+  });
 
   socket.on("disconnect", () => {});
 });
