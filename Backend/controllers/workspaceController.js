@@ -1,3 +1,6 @@
+import Workspace from "../models/Workspace.js";
+import { addUserToGroupConversation} from "./chatController.js";
+
 export const addUserToWorkSpace  = async(projectId, userId, role='Member') =>{
 
     try {
@@ -27,7 +30,7 @@ export const addUserToWorkSpace  = async(projectId, userId, role='Member') =>{
 
   // add user to group conversation
 
-  await addUserTogroupConversation(workspace._id, userId);
+  await addUserToGroupConversation(workspace._id, userId);
 
     } catch (error) {
         console.error(error.message);
