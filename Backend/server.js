@@ -12,6 +12,7 @@ import notificationRoutes from "./routes/api/notificationRoutes.js";
 import projectRoutes from "./routes/api/projectRoutes.js";
 import recommendationRoutes from "./routes/api/recommendationRoutes.js";
 import {handleGroupMessage, handleDirectMessage} from "./controllers/chatController.js";
+import chatRoutes from "./routes/api/chatRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 connectDB();
@@ -44,7 +45,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/notifications", notificationRoutes);
-
+app.use("/api/conversation", chatRoutes);
 app.get("/", (req, res) => {
   res.send("DevCollab API is running...");
 });

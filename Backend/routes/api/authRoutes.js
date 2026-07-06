@@ -12,7 +12,6 @@ const { signupValidator, signupValidateRequest } = authValidator;
 // import gravatar from "gravatar";
 
     const router = express.Router();
-
 // @ route /api/auth/signup
 // @ desc Register/ Signup a new User
 // @acess Public

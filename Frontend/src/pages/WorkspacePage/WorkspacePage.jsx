@@ -193,7 +193,9 @@ export default function WorkspacePage() {
   }, [projectId, token]);
 
   const workspaceMembers = useMemo(() => workspace?.members || [], [workspace]);
-  const workspaceId = workspace?.project?.id || projectId;
+  const workspaceId =
+    workspace?.workspaceId || workspace?._id || workspace?.project?.workspaceId || projectId;
+  const groupConversationId = workspace?.groupConversationId || null;
 
   const currentMember = useMemo(
     () => workspaceMembers.find((member) => member.id === currentUserId),
@@ -328,6 +330,32 @@ export default function WorkspacePage() {
         outgoingMessage,
       ]);
       setDrafts((currentDrafts) => ({ ...currentDrafts, [THREADS.GROUP]: "" }));
+
+      if (groupConversationId) {
+        API.post(
+          `/api/workspaces/${workspaceId}/conversations/${groupConversationId}/messages`,
+          {
+            text: trimmedMessage,
+            clientMessageId: outgoingMessage.clientMessageId,
+            senderId: currentUserId,
+          },
+        )
+          .then((response) => {
+            const savedMessage = response?.data?.message;
+            if (!savedMessage) return;
+
+            setGroupMessages((currentMessages) =>
+              mergeMessages(currentMessages, {
+                ...savedMessage,
+                thread: THREADS.GROUP,
+                status: "sent",
+              }),
+            );
+          })
+          .catch((error) => {
+            console.error("Failed to persist group message", error);
+          });
+      }
 
       if (canSendOverSocket) {
         socket.emit(WORKSPACE_SOCKET_EVENTS.GROUP_MESSAGE, {

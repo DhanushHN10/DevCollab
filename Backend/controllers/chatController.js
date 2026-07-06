@@ -125,4 +125,42 @@ export const handleDirectMessage = async({workspaceId, text, clientMessageId, se
     await newDirectMessage.save();
 
     return newDirectMessage.toObject();
-}
+};
+
+
+// with cursor based pagination currently limited to conversation id and using the cursor to provide the createdAt timestamp of the last message.
+export const getMessages = async(req, res) => {
+
+    try {
+        
+        const {conversationId} = req.params;
+        const {before} = req.query;
+
+        const limit = parseInt(req.query.limit) || 20;
+
+        if(!conversationId)
+        {
+            return res.status(400).json({error: "ConversationId is required"});
+        }
+
+        const query = {conversationId: conversationId};
+
+        if(before)
+        {
+            query.createdAt = {
+                $lt : new Date(before)
+            }
+        }
+
+        const messages = await Message.find(query).sort({createdAt:-1}).limit(limit);
+
+        messages.reverse(); // for frontend - displaying in chronological order
+
+        res.status(200).json({messages: messages,
+            hasMore: messages.length === limit
+        });
+    } catch (error) {
+        res.status(500).json({error: "Error fetching messages"});
+        console.error("Error fetching messages:", error);
+    }
+};
