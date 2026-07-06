@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Project from "../models/Project.js";
 import User from "../models/User.js";
 import Workspace from "../models/Workspace.js";
@@ -6,12 +7,10 @@ import {
   sendProjectRequestToJoinEmail,
 } from "../services/emailService.js";
 import { sendNotification } from "../services/notificationServices.js";
+import { createGroupConversation } from "./chatController.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
-import mongoose from 'mongoose';
-import { createGroupConversation} from "./chatController.js";
 
 export const createProject = async (req, res) => {
-
   // Creating Project, followed by workspace followed by Group Chat should be in a single transaction. One fails, complete roll back.
 
   const session = await mongoose.startSession();
@@ -28,7 +27,7 @@ export const createProject = async (req, res) => {
       createdBy: req.user._id,
       collaborators: [req.user._id],
     });
-    await newProject.save({session});
+    await newProject.save({ session });
 
     const workspace = new Workspace({
       project: newProject._id,
@@ -43,22 +42,17 @@ export const createProject = async (req, res) => {
       createdAt: new Date(),
     });
 
-    await workspace.save({session});
+    await workspace.save({ session });
 
-   
     await createGroupConversation(workspace._id, req.user._id, session);
-   
 
     await session.commitTransaction();
-    
 
     res.status(201).json({
       message: "Project and it's Workspace Created",
       project: newProject,
       workspace: workspace,
     });
-
-    
   } catch (error) {
     await session.abortTransaction();
     res.status(500).json({
@@ -68,7 +62,6 @@ export const createProject = async (req, res) => {
   } finally {
     session.endSession();
   }
-
 };
 
 export const getMyProjects = async (req, res) => {
@@ -252,6 +245,7 @@ export const getWorkspace = async (req, res) => {
         title: project.title,
         description: project.description,
       },
+      workspaceId: workspace._id,
 
       members: workspace.members.map((m) => ({
         id: m.user._id,
@@ -621,12 +615,10 @@ export const getInvitesReceived = async (req, res) => {
 
     res.json({ invites });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        error: "Failed to fetch invites received",
-        details: err.message,
-      });
+    res.status(500).json({
+      error: "Failed to fetch invites received",
+      details: err.message,
+    });
   }
 };
 

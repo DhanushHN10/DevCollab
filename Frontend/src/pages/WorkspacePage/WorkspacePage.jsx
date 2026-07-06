@@ -193,8 +193,7 @@ export default function WorkspacePage() {
   }, [projectId, token]);
 
   const workspaceMembers = useMemo(() => workspace?.members || [], [workspace]);
-  const workspaceId =
-    workspace?.workspaceId || workspace?._id || workspace?.project?.workspaceId || projectId;
+  const workspaceId = workspace?.workspaceId;
   const groupConversationId = workspace?.groupConversationId || null;
 
   const currentMember = useMemo(
