@@ -9,6 +9,7 @@ import {
 import { sendNotification } from "../services/notificationServices.js";
 import { createGroupConversation } from "./chatController.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
+import Conversation from "../models/Chat_Feature/Conversation.js";
 
 export const createProject = async (req, res) => {
   // Creating Project, followed by workspace followed by Group Chat should be in a single transaction. One fails, complete roll back.
@@ -239,6 +240,11 @@ export const getWorkspace = async (req, res) => {
         .json({ message: "You are not a member of this workspace" });
     }
 
+    const groupConversation = await Conversation.findOne({
+      workspaceId: workspace._id,
+      chatType: "group",
+    }).select("_id");
+
     res.json({
       project: {
         id: project._id,
@@ -246,6 +252,7 @@ export const getWorkspace = async (req, res) => {
         description: project.description,
       },
       workspaceId: workspace._id,
+      groupConversationId: groupConversation?._id || null,
 
       members: workspace.members.map((m) => ({
         id: m.user._id,

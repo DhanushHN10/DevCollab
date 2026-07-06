@@ -220,6 +220,34 @@ export default function WorkspacePage() {
     setSelectedDmId(directConversationMembers[0].id);
   }, [activeThread, directConversationMembers, selectedDmId]);
 
+  useEffect(() => {
+    if (!workspaceId || !groupConversationId) return;
+
+    let active = true;
+
+    const loadGroupHistory = async () => {
+      try {
+        const response = await API.get(
+          `/api/conversation/${groupConversationId}/messages`,
+        );
+
+        if (!active) return;
+
+        setGroupMessages(response.data.messages || []);
+      } catch (error) {
+        if (active) {
+          console.error("Failed to load group chat history", error);
+        }
+      }
+    };
+
+    loadGroupHistory();
+
+    return () => {
+      active = false;
+    };
+  }, [groupConversationId, workspaceId]);
+
   const handleGroupMessage = (incomingMessage) => {
     setGroupMessages((currentMessages) =>
       mergeMessages(currentMessages, {
@@ -329,32 +357,6 @@ export default function WorkspacePage() {
         outgoingMessage,
       ]);
       setDrafts((currentDrafts) => ({ ...currentDrafts, [THREADS.GROUP]: "" }));
-
-      if (groupConversationId) {
-        API.post(
-          `/api/workspaces/${workspaceId}/conversations/${groupConversationId}/messages`,
-          {
-            text: trimmedMessage,
-            clientMessageId: outgoingMessage.clientMessageId,
-            senderId: currentUserId,
-          },
-        )
-          .then((response) => {
-            const savedMessage = response?.data?.message;
-            if (!savedMessage) return;
-
-            setGroupMessages((currentMessages) =>
-              mergeMessages(currentMessages, {
-                ...savedMessage,
-                thread: THREADS.GROUP,
-                status: "sent",
-              }),
-            );
-          })
-          .catch((error) => {
-            console.error("Failed to persist group message", error);
-          });
-      }
 
       if (canSendOverSocket) {
         socket.emit(WORKSPACE_SOCKET_EVENTS.GROUP_MESSAGE, {
