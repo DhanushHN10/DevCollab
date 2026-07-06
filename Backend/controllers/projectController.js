@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Conversation from "../models/Chat_Feature/Conversation.js";
 import Project from "../models/Project.js";
 import User from "../models/User.js";
 import Workspace from "../models/Workspace.js";
@@ -9,7 +10,6 @@ import {
 import { sendNotification } from "../services/notificationServices.js";
 import { createGroupConversation } from "./chatController.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
-import Conversation from "../models/Chat_Feature/Conversation.js";
 
 export const createProject = async (req, res) => {
   // Creating Project, followed by workspace followed by Group Chat should be in a single transaction. One fails, complete roll back.
