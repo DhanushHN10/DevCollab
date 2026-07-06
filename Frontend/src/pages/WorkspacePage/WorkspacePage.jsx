@@ -111,6 +111,7 @@ export default function WorkspacePage() {
   const messagesEndRef = useRef(null);
   const activeThreadRef = useRef(THREADS.GROUP);
   const selectedDmIdRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [workspace, setWorkspace] = useState(null);
@@ -124,6 +125,14 @@ export default function WorkspacePage() {
   const [directMessages, setDirectMessages] = useState({});
   const [memberUnread, setMemberUnread] = useState({});
   const [groupUnread, setGroupUnread] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  
+  // Cursor Pagination States
+  const [pagination, setPagination] = useState({
+    groupHasMore: false,
+    dmHasMore: {}, 
+  });
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const currentUserId = getUserIdFromToken();
 
@@ -149,6 +158,7 @@ export default function WorkspacePage() {
     };
   }, []);
 
+  // Fetch Workspace Details
   useEffect(() => {
     let active = true;
 
@@ -175,9 +185,7 @@ export default function WorkspacePage() {
           );
         }
       } finally {
-        if (active) {
-          setWorkspaceLoading(false);
-        }
+        if (active) setWorkspaceLoading(false);
       }
     };
 
@@ -187,14 +195,144 @@ export default function WorkspacePage() {
       setWorkspaceLoading(false);
     }
 
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [projectId, token]);
 
   const workspaceMembers = useMemo(() => workspace?.members || [], [workspace]);
   const workspaceId = workspace?.workspaceId;
-  const groupConversationId = workspace?.groupConversationId || null;
+
+  // Fetch Group Message History
+  useEffect(() => {
+    if (!workspaceId) return;
+    let active = true;
+
+    const fetchGroupHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const response = await API.get(
+          `/api/conversation/workspace/${workspaceId}/group/messages?limit=20`,
+        );
+        if (!active) return;
+        const { messages, hasMore } = response.data;
+
+        setGroupMessages(
+          (messages || []).map((m) => ({ ...m, thread: THREADS.GROUP, status: "sent" })),
+        );
+        setPagination((prev) => ({ ...prev, groupHasMore: hasMore }));
+
+        // Scroll to bottom on initial load
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 100);
+      } catch (error) {
+        console.error("Failed to load group message history", error);
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    };
+
+    fetchGroupHistory();
+    return () => { active = false; };
+  }, [workspaceId]);
+
+  // Fetch DM Message History Dynamically
+  useEffect(() => {
+    if (activeThread !== THREADS.DM || !selectedDmId || !workspaceId) return;
+    let active = true;
+
+    const loadDmHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const idResponse = await API.get(`/api/conversation/workspace/${workspaceId}/dm/${selectedDmId}/id`);
+        const dmConversationId = idResponse.data.conversationId;
+
+        // If lazy creation returns null, there's no history yet
+        if (!dmConversationId) {
+          if (!active) return;
+          setDirectMessages((current) => ({ ...current, [selectedDmId]: [] }));
+          setPagination((prev) => ({
+            ...prev,
+            dmHasMore: { ...prev.dmHasMore, [selectedDmId]: false }
+          }));
+          return;
+        }
+
+        const msgResponse = await API.get(`/api/conversation/${dmConversationId}/messages?limit=20`);
+        if (!active) return;
+        const { messages, hasMore } = msgResponse.data;
+
+        setDirectMessages((current) => ({
+          ...current,
+          [selectedDmId]: (messages || []).map((m) => ({ ...m, thread: THREADS.DM, status: "sent" }))
+        }));
+        setPagination((prev) => ({
+          ...prev,
+          dmHasMore: { ...prev.dmHasMore, [selectedDmId]: hasMore }
+        }));
+
+        // Scroll to bottom on initial DM load
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 100);
+      } catch (error) {
+        if (active) console.error("Failed to load DM history", error);
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    };
+
+    loadDmHistory();
+    return () => { active = false; };
+  }, [activeThread, selectedDmId, workspaceId]);
+
+  // Pagination Handler
+  const loadOlderMessages = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+
+    try {
+      if (activeThread === THREADS.GROUP) {
+        const oldestMessage = groupMessages[0];
+        if (!oldestMessage) return;
+
+        const response = await API.get(
+          `/api/conversation/workspace/${workspaceId}/group/messages?limit=20&before=${oldestMessage.createdAt}`
+        );
+        const { messages, hasMore } = response.data;
+        const formattedMessages = (messages || []).map((m) => ({ ...m, thread: THREADS.GROUP, status: "sent" }));
+
+        setGroupMessages((current) => [...formattedMessages, ...current]);
+        setPagination((prev) => ({ ...prev, groupHasMore: hasMore }));
+
+      } else if (activeThread === THREADS.DM && selectedDmId) {
+        const currentDMs = directMessages[selectedDmId] || [];
+        const oldestMessage = currentDMs[0];
+        if (!oldestMessage) return;
+
+        const idResponse = await API.get(`/api/conversation/workspace/${workspaceId}/dm/${selectedDmId}/id`);
+        const dmConversationId = idResponse.data.conversationId;
+
+        const response = await API.get(
+          `/api/conversation/${dmConversationId}/messages?limit=20&before=${oldestMessage.createdAt}`
+        );
+        const { messages, hasMore } = response.data;
+        const formattedMessages = (messages || []).map((m) => ({ ...m, thread: THREADS.DM, status: "sent" }));
+
+        setDirectMessages((current) => ({
+          ...current,
+          [selectedDmId]: [...formattedMessages, ...currentDMs]
+        }));
+        setPagination((prev) => ({
+          ...prev,
+          dmHasMore: { ...prev.dmHasMore, [selectedDmId]: hasMore }
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load older messages", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const currentMember = useMemo(
     () => workspaceMembers.find((member) => member.id === currentUserId),
@@ -220,34 +358,6 @@ export default function WorkspacePage() {
     setSelectedDmId(directConversationMembers[0].id);
   }, [activeThread, directConversationMembers, selectedDmId]);
 
-  useEffect(() => {
-    if (!workspaceId || !groupConversationId) return;
-
-    let active = true;
-
-    const loadGroupHistory = async () => {
-      try {
-        const response = await API.get(
-          `/api/conversation/${groupConversationId}/messages`,
-        );
-
-        if (!active) return;
-
-        setGroupMessages(response.data.messages || []);
-      } catch (error) {
-        if (active) {
-          console.error("Failed to load group chat history", error);
-        }
-      }
-    };
-
-    loadGroupHistory();
-
-    return () => {
-      active = false;
-    };
-  }, [groupConversationId, workspaceId]);
-
   const handleGroupMessage = (incomingMessage) => {
     setGroupMessages((currentMessages) =>
       mergeMessages(currentMessages, {
@@ -259,6 +369,10 @@ export default function WorkspacePage() {
 
     if (activeThreadRef.current !== THREADS.GROUP) {
       setGroupUnread((count) => count + 1);
+    } else {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
     }
   };
 
@@ -278,7 +392,6 @@ export default function WorkspacePage() {
 
     setDirectMessages((currentMessages) => {
       const currentConversation = currentMessages[conversationKey] || [];
-
       return {
         ...currentMessages,
         [conversationKey]: mergeMessages(currentConversation, {
@@ -299,6 +412,10 @@ export default function WorkspacePage() {
         ...current,
         [conversationKey]: (current[conversationKey] || 0) + 1,
       }));
+    } else {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
     }
   };
 
@@ -319,13 +436,6 @@ export default function WorkspacePage() {
   });
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [activeThread, groupMessages, selectedDmId, directMessages]);
-
-  useEffect(() => {
     if (activeThread === THREADS.GROUP) {
       setGroupUnread(0);
       return;
@@ -338,7 +448,6 @@ export default function WorkspacePage() {
 
   const sendMessage = () => {
     const trimmedMessage = drafts[activeThread].trim();
-
     if (!trimmedMessage || !workspace || !currentMember) return;
 
     const socket = socketRef.current;
@@ -358,6 +467,10 @@ export default function WorkspacePage() {
       ]);
       setDrafts((currentDrafts) => ({ ...currentDrafts, [THREADS.GROUP]: "" }));
 
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
+
       if (canSendOverSocket) {
         socket.emit(WORKSPACE_SOCKET_EVENTS.GROUP_MESSAGE, {
           projectId,
@@ -369,7 +482,6 @@ export default function WorkspacePage() {
           createdAt: outgoingMessage.createdAt,
         });
       }
-
       return;
     }
 
@@ -385,7 +497,6 @@ export default function WorkspacePage() {
 
     setDirectMessages((currentMessages) => {
       const currentConversation = currentMessages[selectedDmMember.id] || [];
-
       return {
         ...currentMessages,
         [selectedDmMember.id]: [...currentConversation, outgoingMessage],
@@ -393,6 +504,10 @@ export default function WorkspacePage() {
     });
     setDrafts((currentDrafts) => ({ ...currentDrafts, [THREADS.DM]: "" }));
     setMemberUnread((current) => ({ ...current, [selectedDmMember.id]: 0 }));
+    
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 100);
 
     if (canSendOverSocket) {
       socket.emit(WORKSPACE_SOCKET_EVENTS.DIRECT_MESSAGE, {
@@ -636,7 +751,7 @@ export default function WorkspacePage() {
             </CardContent>
           </Card>
 
-          <Card className='flex min-h-[72vh] flex-col border-white/10 bg-white/5 text-white shadow-2xl shadow-black/20'>
+          <Card className='flex h-[90vh] flex-col border-white/10 bg-white/5 text-white shadow-2xl shadow-black/20'>
             <CardHeader className='border-b border-white/10 pb-4'>
               <div className='flex flex-wrap items-center justify-between gap-3'>
                 <div>
@@ -655,7 +770,7 @@ export default function WorkspacePage() {
                         : "Choose a teammate to open a private thread"}
                   </CardDescription>
                 </div>
-
+                    
                 <div className='flex items-center gap-2 rounded-full border border-white/10 bg-black/20 p-1 text-sm'>
                   <button
                     type='button'
@@ -663,7 +778,7 @@ export default function WorkspacePage() {
                       setActiveThread(THREADS.GROUP);
                       setGroupUnread(0);
                     }}
-                    className={`rounded-full px-4 py-2 font-medium transition ${
+                    className={`relative rounded-full px-4 py-2 font-medium transition ${
                       activeThread === THREADS.GROUP
                         ? "bg-white text-black"
                         : "text-white/70 hover:text-white"
@@ -673,11 +788,16 @@ export default function WorkspacePage() {
                     <span className='ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[11px] font-semibold'>
                       {groupMessageCount}
                     </span>
+                    {groupUnread > 0 && activeThread !== THREADS.GROUP && (
+                      <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#0e0e0e] bg-rose-500 text-[10px] font-bold text-white shadow-lg'>
+                        {groupUnread}
+                      </span>
+                    )}
                   </button>
                   <button
                     type='button'
                     onClick={() => setActiveThread(THREADS.DM)}
-                    className={`rounded-full px-4 py-2 font-medium transition ${
+                    className={`relative rounded-full px-4 py-2 font-medium transition ${
                       activeThread === THREADS.DM
                         ? "bg-white text-black"
                         : "text-white/70 hover:text-white"
@@ -687,13 +807,34 @@ export default function WorkspacePage() {
                     <span className='ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[11px] font-semibold'>
                       {dmMessageCount}
                     </span>
+                    {Object.values(memberUnread).reduce((a, b) => a + b, 0) > 0 && activeThread !== THREADS.DM && (
+                      <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#0e0e0e] bg-rose-500 text-[10px] font-bold text-white shadow-lg'>
+                        {Object.values(memberUnread).reduce((a, b) => a + b, 0)}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className='flex flex-1 flex-col p-0'>
-              <div className='flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6'>
+            <CardContent className='flex min-h-0 flex-1 flex-col p-0'>
+              <div className='flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6' ref={scrollContainerRef}>
+                
+                {((activeThread === THREADS.GROUP && pagination.groupHasMore) || 
+                  (activeThread === THREADS.DM && pagination.dmHasMore[selectedDmId])) && (
+                    <div className="mb-4 flex justify-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={loadOlderMessages} 
+                        disabled={loadingMore}
+                        className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                      >
+                        {loadingMore ? "Loading..." : "Load older messages"}
+                      </Button>
+                    </div>
+                )}
+
                 {activeThread === THREADS.DM && !selectedDmMember ? (
                   <div className='flex min-h-[24rem] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/10 px-6 text-center'>
                     <div className='max-w-md space-y-3'>
@@ -710,14 +851,18 @@ export default function WorkspacePage() {
                   <div className='flex min-h-[24rem] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/10 px-6 text-center'>
                     <div className='max-w-md space-y-3'>
                       <h3 className='text-xl font-semibold text-white'>
-                        {activeThread === THREADS.GROUP
-                          ? "No group messages yet"
-                          : "No direct messages yet"}
+                        {historyLoading && activeThread === THREADS.GROUP
+                          ? "Loading messages..."
+                          : activeThread === THREADS.GROUP
+                            ? "No group messages yet"
+                            : "No direct messages yet"}
                       </h3>
                       <p className='text-sm text-white/60'>
-                        {activeThread === THREADS.GROUP
-                          ? "Start the workspace conversation from here."
-                          : "Say hello to begin the private thread."}
+                        {historyLoading && activeThread === THREADS.GROUP
+                          ? "Fetching your conversation history."
+                          : activeThread === THREADS.GROUP
+                            ? "Start the workspace conversation from here."
+                            : "Say hello to begin the private thread."}
                       </p>
                     </div>
                   </div>
@@ -727,9 +872,7 @@ export default function WorkspacePage() {
 
                     return (
                       <div
-                        key={
-                          message.clientMessageId || message._id || message.id
-                        }
+                        key={message.clientMessageId || message._id || message.id}
                         className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                       >
                         <div
@@ -741,7 +884,7 @@ export default function WorkspacePage() {
                         >
                           {!isMine && (
                             <p className='text-xs font-semibold uppercase tracking-[0.2em] text-white/45'>
-                              {message.senderName || "Member"}
+                              {message.senderName || workspaceMembers.find((m) => m.id === message.senderId)?.name || "Member"}
                             </p>
                           )}
                           <p className='mt-1 whitespace-pre-wrap text-sm leading-6 text-white'>
@@ -763,7 +906,7 @@ export default function WorkspacePage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className='border-t border-white/10 bg-black/10 p-4 sm:p-5'>
+              <div className='shrink-0 border-t border-white/10 bg-black/10 p-4 sm:p-5'>
                 <div className='mb-3 flex items-center justify-between gap-3 text-xs text-white/45'>
                   <span>
                     {activeThread === THREADS.GROUP
@@ -787,7 +930,6 @@ export default function WorkspacePage() {
                   }
                   onKeyDown={(event) => {
                     if (event.key !== "Enter" || event.shiftKey) return;
-
                     event.preventDefault();
                     sendMessage();
                   }}

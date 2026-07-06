@@ -1,5 +1,5 @@
 import express from "express";
-import {getMessages} from "../../controllers/chatController.js";
+import {getMessages, getGroupMessages, getDirectConversationId} from "../../controllers/chatController.js";
 import {checkConversationAccess} from "../../middleware/checkConversationAccess.js";
 import {protect} from "../../middleware/protect.js";
 
@@ -10,5 +10,9 @@ const router = express.Router();
 // @access Project Members
 
 router.get("/:conversationId/messages", protect, checkConversationAccess, getMessages);
+
+router.get("/workspace/:workspaceId/group/messages", protect, getGroupMessages);
+
+router.get("/workspace/:workspaceId/dm/:recipientId/id", protect, getDirectConversationId);
 
 export default router;

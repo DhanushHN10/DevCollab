@@ -10,7 +10,6 @@ import {
 import { sendNotification } from "../services/notificationServices.js";
 import { createGroupConversation } from "./chatController.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
-
 export const createProject = async (req, res) => {
   // Creating Project, followed by workspace followed by Group Chat should be in a single transaction. One fails, complete roll back.
 
@@ -212,12 +211,10 @@ export const getWorkspace = async (req, res) => {
   try {
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId).select("title");
+    const project = await Project.findById(projectId).select("title description");
 
     if (!project) {
-      return res.status(404).json({
-        message: "Project not found",
-      });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     const workspace = await Workspace.findOne({ project: projectId }).populate(
@@ -226,18 +223,14 @@ export const getWorkspace = async (req, res) => {
     );
 
     if (!workspace) {
-      return res.status(404).json({
-        message: "Workspace not found",
-      });
+      return res.status(404).json({ message: "Workspace not found" });
     }
 
     const isMember = workspace.members.some((m) =>
       m.user._id.equals(req.user._id),
     );
     if (!isMember) {
-      return res
-        .status(403)
-        .json({ message: "You are not a member of this workspace" });
+      return res.status(403).json({ message: "You are not a member of this workspace" });
     }
 
     const groupConversation = await Conversation.findOne({
@@ -253,7 +246,6 @@ export const getWorkspace = async (req, res) => {
       },
       workspaceId: workspace._id,
       groupConversationId: groupConversation?._id || null,
-
       members: workspace.members.map((m) => ({
         id: m.user._id,
         name: m.user.name,
