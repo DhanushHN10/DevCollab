@@ -59,9 +59,9 @@ export const handleGroupMessage = async ({
   }
 
   let conversationId = groupConversationIdCache.get(workspaceId);
-
+  let conversation;
   if (!conversationId) {
-    let conversation = await Conversation.findOne({
+     conversation = await Conversation.findOne({
       workspaceId: workspaceId,
       chatType: "group",
     });
@@ -253,8 +253,9 @@ export const getGroupMessages = async(req,res) =>{
     }
     let conversationId = groupConversationIdCache.get(workspaceId);
 
+    let conversation;
     if(!conversationId) {
-      let conversation = await Conversation.findOne({
+       conversation = await Conversation.findOne({
         workspaceId : workspaceId,
         chatType: "group"
       });
