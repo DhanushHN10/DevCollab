@@ -16,3 +16,4 @@ app_copy.py
 venv/
 .DS_Store
 WorkspaceChatBackendPlan.md
+Backend/scripts/loadtest.js
