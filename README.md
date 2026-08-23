@@ -217,7 +217,7 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  5. **Workspace Access**: Dedicated workspace for each project
  
  #### Collaboration Features
- 
+  
  - **Role-Based Access Control (RBAC)**: Owner vs. Collaborator permissions
  - **Collaboration Status Tracking**: Monitor all invitations and requests
  - **Bidirectional Workflow**: Both owners and developers can initiate collaboration
@@ -226,7 +226,30 @@ This separation of concerns supports **scalability**, **maintainability**, and  
    - My Collaborations
    - Invites Received
    - Join Requests Sent
- 
+
+ ### 💬 Real-Time Communication & Notifications
+
+ DevCollab includes real-time collaboration features beyond project discovery and invitations:
+
+ - **Workspace Group Chat**: Each project workspace has a persistent group conversation room
+ - **Direct Messaging**: 1:1 chat between collaborators inside the same workspace
+ - **Conversation Persistence**: Messages are stored in MongoDB and paginated by timestamp
+ - **Socket.IO Updates**: Live delivery for group messages and DM events without manual refresh
+ - **Notification Center**: In-app notifications for new messages, invites, requests, and status changes
+ - **Read States**: Notifications can be marked as read individually or all at once
+
+ These features are implemented in the backend using Socket.IO in `Backend/server.js` and MongoDB-backed chat models under `Backend/models/Chat_Feature/`.
+
+ #### Socket.IO Event Flow
+
+ - `workspace:join` — joins a workspace room for group chat updates
+ - `workspace:leave` — leaves a workspace room
+ - `workspace:message` — sends a group chat message payload to the workspace room
+ - `workspace:dm:message` — sends a direct message to the recipient user channel
+ - `workspace:error` — emits validation or server-side errors back to the client
+
+ The backend also authenticates all socket connections with the JWT token passed in `socket.handshake.auth.token`.
+
  ### 🎨 User Experience
  
  - **Modern UI/UX**: Built with Tailwind CSS and shadcn/ui components
@@ -999,9 +1022,49 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  Authorization: Bearer <JWT_TOKEN>
  ```
  
+ ### Chat & Notification Endpoints
+
+ #### 11. Get Conversation Messages
+
+ ```http
+ GET /conversation/:conversationId/messages?before=<timestamp>&limit=20
+ Authorization: ******
+ ```
+
+ Returns paginated message history for a direct or group conversation. The `before` query parameter supports cursor-based pagination by timestamp.
+
+ #### 12. Get Workspace Group Messages
+
+ ```http
+ GET /conversation/workspace/:workspaceId/group/messages?before=<timestamp>&limit=20
+ Authorization: ******
+ ```
+
+ Returns the latest group chat messages for a workspace, filtered by workspace membership.
+
+ #### 13. Get Direct Conversation ID
+
+ ```http
+ GET /conversation/workspace/:workspaceId/dm/:recipientId/id
+ Authorization: ******
+ ```
+
+ Returns the direct-message conversation ID used by the frontend before loading a DM thread.
+
+ ### Notification Endpoints
+
+ ```http
+ GET /notifications
+ PATCH /notifications/read-all
+ PATCH /notifications/:notificationId/read
+ Authorization: ******
+ ```
+
+ Returns the current user's notification feed and allows bulk or per-item read state updates.
+
  ### Recommendation Endpoints
- 
- #### 11. Get Project Recommendations
+  
+ #### 14. Get Project Recommendations
  
  ```http
  GET /recommendations/projects
@@ -1021,7 +1084,7 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  }
  ```
  
- #### 12. Get Developer Recommendations
+ #### 15. Get Developer Recommendations
  
  ```http
  GET /recommendations/users/:projectId
@@ -1077,120 +1140,111 @@ This separation of concerns supports **scalability**, **maintainability**, and  
  ---
  
  ## 📁 Project Structure
- 
+  
  ```
  DevCollab/
- ├── Frontend/                    # React frontend application
- │   ├── public/                  # Static assets
+ ├── Frontend/                     # React + Vite frontend
+ │   ├── public/
  │   ├── src/
  │   │   ├── api/
- │   │   │   └── axios.js         # Axios configuration with interceptors
- │   │   ├── assets/              # Images, fonts, etc.
- │   │   ├── blocks/              # Reusable UI blocks
- │   │   │   ├── Backgrounds/     # Animated backgrounds
- │   │   │   └── Components/      # Complex components
+ │   │   │   └── axios.js          # Shared Axios instance for API calls
+ │   │   ├── blocks/
  │   │   ├── components/
- │   │   │   └── ui/              # shadcn/ui components (button, card, etc.)
  │   │   ├── context/
- │   │   │   ├── AuthContext.jsx  # Authentication state management
- │   │   │   └── useAuth.js       # Custom auth hook
- │   │   ├── pages/               # Page components
- │   │   │   ├── Homepage.jsx     # Landing page
- │   │   │   ├── SignupPage.jsx   # User registration
- │   │   │   ├── LoginPage.jsx    # User login
- │   │   │   ├── CompleteProfilePage.jsx  # Profile setup
- │   │   │   ├── Dashboard.jsx    # Main dashboard
- │   │   │   ├── ViewProfile.jsx  # User profile view
- │   │   │   ├── CreateProjectPage.jsx  # Project creation
- │   │   │   ├── ProjectPage/
- │   │   │   │   ├── ProjectPage.jsx  # Project details
- │   │   │   │   └── searchAndInviteDevs.jsx  # Developer search
- │   │   │   └── sharedViews/     # Reusable views
+ │   │   │   ├── AuthContext.jsx   # Auth state management
+ │   │   │   └── useAuth.js
+ │   │   ├── pages/
  │   │   ├── router/
- │   │   │   └── routes.jsx       # Route definitions
- │   │   ├── tools/               # Utility components
- │   │   │   ├── MainNavbar.jsx   # Main navigation
- │   │   │   ├── Navbar.jsx       # Secondary navigation
- │   │   │   └── ProtectedRoute.jsx  # Route guards
- │   │   ├── utils/               # Helper functions
- │   │   │   ├── getUserIdFromToken.js  # JWT decoding
- │   │   │   └── logout.js        # Logout utility
- │   │   ├── App.jsx              # Root component
- │   │   ├── main.jsx             # Entry point
- │   │   └── index.css            # Global styles
- │   ├── components.json          # shadcn/ui configuration
- │   ├── package.json             # Frontend dependencies
- │   ├── vite.config.js           # Vite configuration
- │   └── tailwind.config.js       # Tailwind CSS configuration
+ │   │   ├── tools/
+ │   │   ├── utils/
+ │   │   ├── App.jsx
+ │   │   ├── main.jsx
+ │   │   └── index.css
+ │   ├── package.json
+ │   ├── vite.config.js
+ │   └── tailwind.config.js
  │
- ├── Backend/                     # Express.js backend application
+ ├── Backend/                      # Express.js API + Socket.IO server
  │   ├── config/
- │   │   ├── db.js                # MongoDB connection
- │   │   └── passport.js          # Passport.js OAuth configuration
+ │   │   ├── db.js                 # MongoDB connection
+ │   │   └── passport.js           # Google OAuth setup (optional)
  │   ├── controllers/
- │   │   ├── authController.js    # Authentication logic
- │   │   ├── projectController.js # Project CRUD operations
- │   │   ├── recommendationController.js  # Recommendation logic
- │   │   └── workspaceController.js  # Workspace management
+ │   │   ├── authController.js     # Signup/login/profile logic
+ │   │   ├── chatController.js     # Group DM chat logic + message pagination
+ │   │   ├── notificationController.js
+ │   │   ├── projectController.js  # Projects, invites, workspace setup
+ │   │   ├── recommendationController.js
+ │   │   ├── workspaceController.js
+ │   │   └── ...
  │   ├── middleware/
- │   │   ├── protect.js           # JWT authentication middleware
- │   │   └── checkProjectMember.js  # Authorization middleware
+ │   │   ├── protect.js            # JWT auth guard
+ │   │   ├── checkProjectMember.js # Project authorization
+ │   │   ├── checkConversationAccess.js
+ │   │   └── checkWorkspaceMembership.js
  │   ├── models/
- │   │   ├── User.js              # User schema
- │   │   ├── Project.js           # Project schema
- │   │   ├── Workspace.js         # Workspace schema
- │   │   └── Chat_Feature/        # (Future: Real-time chat models)
- │   ├── routes/
- │   │   └── api/
- │   │       ├── authRoutes.js    # Auth endpoints
- │   │       ├── projectRoutes.js # Project endpoints
- │   │       └── recommendationRoutes.js  # Recommendation endpoints
- │   ├── utils/
- │   │   └── authGenerationToken.js  # JWT generation
+ │   │   ├── Chat_Feature/
+ │   │   │   ├── Conversation.js   # Direct/group conversation metadata
+ │   │   │   └── Messages.js       # Persisted chat messages
+ │   │   ├── Notifications.js      # Notification documents
+ │   │   ├── Project.js
+ │   │   ├── User.js
+ │   │   └── Workspace.js
+ │   ├── routes/api/
+ │   │   ├── authRoutes.js
+ │   │   ├── chatRoutes.js
+ │   │   ├── notificationRoutes.js
+ │   │   ├── projectRoutes.js
+ │   │   └── recommendationRoutes.js
+ │   ├── services/
+ │   │   ├── emailService.js
+ │   │   └── notificationServices.js
  │   ├── validators/
- │   │   └── authValidatorCheck.js  # Input validation
- │   ├── server.js                # Express server entry point
- │   ├── package.json             # Backend dependencies
- │   └── .env                     # Environment variables (create this)
+ │   ├── server.js                 # Express + Socket.IO entry point
+ │   ├── .env                      # Environment configuration
+ │   ├── package.json
+ │   └── node_modules/
  │
- ├── ai-recommendation-api/       # Python Flask AI service
- │   ├── app.py                   # Flask application
- │   ├── requirements.txt         # Python dependencies
- │   └── runtime.txt              # Python version specification
+ ├── ai-recommendation-api/        # Flask ML recommendation service
+ │   ├── app.py
+ │   ├── requirements.txt
+ │   └── runtime.txt
  │
- ├── package.json                 # Root dependencies (concurrently)
- ├── README.md                    # This file
- ├── LICENSE                      # GPL v3 License
- ├── Document.md                  # Additional documentation
- └── ToDo.md                      # Development roadmap
+ ├── package.json                  # Root concurrent scripts
+ ├── README.md
+ ├── LICENSE
+ ├── Document.md
+ ├── ToDo.md
+ └── WorkspaceChatBackendPlan.md
  ```
- 
+  
  ### Key Files Explained
- 
+  
  #### Frontend
- 
- - **`src/api/axios.js`**: Configures Axios with base URL and request/response interceptors for automatic token injection
- - **`src/context/AuthContext.jsx`**: Manages global authentication state (user, token, login/logout functions)
- - **`src/router/routes.jsx`**: Defines all application routes using React Router
- - **`src/pages/Dashboard.jsx`**: Main dashboard with project recommendations and management
- - **`components.json`**: Configuration for shadcn/ui component imports
- 
+  
+ - **`src/api/axios.js`**: Shared Axios config with base URL and auth headers
+ - **`src/context/AuthContext.jsx`**: User auth state and session management
+ - **`src/router/routes.jsx`**: Route registration and navigation flow
+ - **`src/pages/Dashboard.jsx`**: Main collaboration and recommendation dashboard
+ - **`src/pages/Workspace/`**: Workspace-specific views, chat, and project collaboration UI
+  
  #### Backend
- 
- - **`server.js`**: Express app setup, middleware, and route mounting
- - **`config/db.js`**: MongoDB connection with error handling
- - **`config/passport.js`**: Google OAuth 2.0 strategy configuration
- - **`middleware/protect.js`**: JWT verification middleware for protected routes
- - **`middleware/checkProjectMember.js`**: Verifies user is project owner/collaborator
- - **`controllers/projectController.js`**: Business logic for project operations (678 lines - comprehensive)
- - **`models/User.js`**: User schema with skills, interests, OAuth support
- 
+  
+ - **`server.js`**: Express app setup, CORS, Socket.IO event wiring, and route mounting
+ - **`config/db.js`**: MongoDB connection setup
+ - **`config/passport.js`**: Optional Google OAuth strategy registration
+ - **`middleware/protect.js`**: JWT validation for protected routes
+ - **`middleware/checkWorkspaceMembership.js`**: Ensures only workspace members can access group chat data
+ - **`controllers/chatController.js`**: Group chat history, DM creation, notification generation, and pagination logic
+ - **`controllers/notificationController.js`**: Fetches and updates in-app notifications
+ - **`models/Chat_Feature/Conversation.js`** and **`Messages.js`**: Real-time chat data model layer
+ - **`models/Notifications.js`**: Notification schema for invite/message alerts
+  
  #### AI Service
- 
- - **`app.py`**: Flask application with two recommendation endpoints
-   - `/recommend-projects`: TF-IDF + Cosine Similarity for project matching
-   - `/recommend-users`: TF-IDF + Cosine Similarity for developer matching
- 
+  
+ - **`app.py`**: Flask application exposing recommendation endpoints
+   - `/recommend-projects`: matches developers to projects
+   - `/recommend-users`: matches projects to potential collaborators
+  
  ---
  
  ## 🤖 AI Recommendation System
