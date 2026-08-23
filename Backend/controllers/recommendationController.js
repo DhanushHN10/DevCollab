@@ -25,7 +25,7 @@ export const recommendProjects = async (req, res) => {
       isAcceptingDevs: true,
        collaborators: { $nin: [userId] },
 
-    });
+    }).select('_id techStack tags');
 
     const formattedProjects = projects.map(project => ({
       _id: project._id.toString(),
