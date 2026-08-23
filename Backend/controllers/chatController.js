@@ -9,6 +9,21 @@ const groupConversationIdCache = new LRUCache({
   max: 5000,
 });
 
+// Cache workspace lookups (members/project) to avoid repeated DB hits for notifications
+const workspaceCache = new LRUCache({
+  max: 5000,
+});
+
+// Invalidate workspace cache when membership or project metadata changes
+export const invalidateWorkspaceCache = (workspaceId) => {
+  try {
+    workspaceCache.delete(workspaceId);
+  } catch (err) {
+    // ignore cache invalidation errors
+    console.error('Error invalidating workspace cache:', err);
+  }
+};
+
 export const createGroupConversation = async (
   workspaceId,
   ownerId,
@@ -99,8 +114,13 @@ export const handleGroupMessage = async ({
   await newGroupMessage.save();
 
   try {
-    const workspace = await Workspace.findById(workspaceId).select('members project').populate('project', 'title').lean();
-    
+    // Use cache to reduce repeated workspace DB lookups on high message volumes
+    let workspace = workspaceCache.get(workspaceId);
+    if (!workspace) {
+      workspace = await Workspace.findById(workspaceId).select('members project').populate('project', 'title').lean();
+      if (workspace) workspaceCache.set(workspaceId, workspace);
+    }
+
     if (workspace) {
       const notifications = workspace.members
         .filter(member => member.user.toString() !== senderId.toString())
@@ -183,21 +203,8 @@ export const handleDirectMessage = async ({
       title: "New Direct Message",
       message: text.length > 40 ? text.substring(0, 40) + '...' : text
     });
-    
+
     await chatNotification.save();
-    try {
-    const chatNotification = new Notification({
-      recipient: recipientId,
-      sender: senderId,
-      type: "chat_message",
-      title: "New Direct Message",
-      message: text.length > 40 ? text.substring(0, 40) + '...' : text
-    });
-    
-    await chatNotification.save();
-  } catch (notifError) {
-    console.error("Failed to create notification, but message was sent:", notifError);
-  }
   } catch (notifError) {
     console.error("Failed to create notification, but message was sent:", notifError);
   }
@@ -269,15 +276,15 @@ export const getGroupMessages = async(req,res) =>{
       groupConversationIdCache.set(workspaceId, conversationId);
     }
 
-
-const query = { conversationId: conversation._id };
+    const query = { conversationId };
 
     if (before) {
       query.createdAt = {
         $lt: new Date(before),
       };
+    }
 
-      const messages = await Message.find(query)
+    const messages = await Message.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
@@ -288,8 +295,6 @@ const query = { conversationId: conversation._id };
       .status(200)
       .json({ messages: messages, hasMore: messages.length === limit });
 
-
-    }
   } catch (error) {
     return res.status(500).json({message:"Error fetching group messages"});
   }
