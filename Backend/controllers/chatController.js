@@ -1,8 +1,8 @@
 import { LRUCache } from "lru-cache";
 import Conversation from "../models/Chat_Feature/Conversation.js";
 import Message from "../models/Chat_Feature/Messages.js";
-import Workspace from "../models/Workspace.js"
 import Notification from "../models/Notifications.js";
+import Workspace from "../models/Workspace.js";
 
 // In Memory cache to store [workspaceId, conversationId] for fast lookup of groupConversations.
 const groupConversationIdCache = new LRUCache({
@@ -20,7 +20,7 @@ export const invalidateWorkspaceCache = (workspaceId) => {
     workspaceCache.delete(workspaceId);
   } catch (err) {
     // ignore cache invalidation errors
-    console.error('Error invalidating workspace cache:', err);
+    console.error("Error invalidating workspace cache:", err);
   }
 };
 
@@ -52,7 +52,7 @@ export const addUserToGroupConversation = async (workspaceId, userId) => {
     });
 
     if (!conversation) {
-      return; 
+      return;
     }
 
     await Conversation.findByIdAndUpdate(conversation._id, {
@@ -68,6 +68,7 @@ export const handleGroupMessage = async ({
   text,
   clientMessageId,
   senderId,
+  io,
 }) => {
   if (!text || !workspaceId || !senderId) {
     throw new Error("Invalid Payload");
@@ -76,7 +77,7 @@ export const handleGroupMessage = async ({
   let conversationId = groupConversationIdCache.get(workspaceId);
   let conversation;
   if (!conversationId) {
-     conversation = await Conversation.findOne({
+    conversation = await Conversation.findOne({
       workspaceId: workspaceId,
       chatType: "group",
     });
@@ -84,19 +85,21 @@ export const handleGroupMessage = async ({
     if (!conversation) {
       // throw new Error("group Conversation not found");
 
+      // Changing from throwing an error to creating a group chat so that previously created project workspaces can have group chat and not crash.
 
-      // Changing from throwing an error to creating a group chat so that previously created project workspaces can have group chat and not crash. 
-      
-      const workspace = await Workspace.findById(workspaceId).select('members.user').lean();
+      const workspace = await Workspace.findById(workspaceId)
+        .select("members.user")
+        .lean();
 
-        const existingWorkspaceCollaborators = workspace.members.map(member => member.user);
+      const existingWorkspaceCollaborators = workspace.members.map(
+        (member) => member.user,
+      );
 
-
-        conversation = await Conversation.create({
-          workspaceId: workspaceId,
-          chatType: "group",
-          participants: existingWorkspaceCollaborators
-        });
+      conversation = await Conversation.create({
+        workspaceId: workspaceId,
+        chatType: "group",
+        participants: existingWorkspaceCollaborators,
+      });
     }
 
     conversationId = conversation._id;
@@ -117,30 +120,39 @@ export const handleGroupMessage = async ({
     // Use cache to reduce repeated workspace DB lookups on high message volumes
     let workspace = workspaceCache.get(workspaceId);
     if (!workspace) {
-      workspace = await Workspace.findById(workspaceId).select('members project').populate('project', 'title').lean();
+      workspace = await Workspace.findById(workspaceId)
+        .select("members project")
+        .populate("project", "title")
+        .lean();
       if (workspace) workspaceCache.set(workspaceId, workspace);
     }
 
     if (workspace) {
       const notifications = workspace.members
-        .filter(member => member.user.toString() !== senderId.toString())
-        .map(member => ({
+        .filter((member) => member.user.toString() !== senderId.toString())
+        .map((member) => ({
           recipient: member.user,
           sender: senderId,
           type: "group_chat_message",
-          title: `New message in ${workspace.project?.title || 'Workspace'}`,
-          message: text.length > 40 ? text.substring(0, 40) + '...' : text
+          title: `New message in ${workspace.project?.title || "Workspace"}`,
+          message: text.length > 40 ? text.substring(0, 40) + "..." : text,
         }));
 
       if (notifications.length > 0) {
-        await Notification.insertMany(notifications); // Bulk insert is much faster
+        const savedNotifications = await Notification.insertMany(notifications); // Bulk insert is much faster
+        if (io) {
+          savedNotifications.forEach((notification) => {
+            io.to(`user:${notification.recipient}`).emit(
+              "new_notification",
+              notification,
+            );
+          });
+        }
       }
     }
   } catch (notifError) {
     console.error("Failed to create group notifications:", notifError);
   }
-
-
 
   return newGroupMessage.toObject();
 };
@@ -175,6 +187,7 @@ export const handleDirectMessage = async ({
   clientMessageId,
   senderId,
   recipientId,
+  io,
 }) => {
   if (!text || !workspaceId || !senderId || !recipientId)
     throw new Error("Invalid Payload");
@@ -201,15 +214,25 @@ export const handleDirectMessage = async ({
       sender: senderId,
       type: "chat_message",
       title: "New Direct Message",
-      message: text.length > 40 ? text.substring(0, 40) + '...' : text
+      message: text.length > 40 ? text.substring(0, 40) + "..." : text,
     });
 
     await chatNotification.save();
+    if (io) {
+      io.to(`user:${recipientId}`).emit("new_notification", chatNotification);
+    }
   } catch (notifError) {
-    console.error("Failed to create notification, but message was sent:", notifError);
+    console.error(
+      "Failed to create notification, but message was sent:",
+      notifError,
+    );
   }
 
-  return newDirectMessage.toObject();
+  return {
+    ...newDirectMessage.toObject(),
+    conversationId,
+    workspaceId,
+  };
 };
 
 // with cursor based pagination currently limited to conversation id and using the cursor to provide the createdAt timestamp of the last message.
@@ -248,28 +271,26 @@ export const getMessages = async (req, res) => {
   }
 };
 
-export const getGroupMessages = async(req,res) =>{
+export const getGroupMessages = async (req, res) => {
   try {
-    const {workspaceId} = req.params;
-    const {before} = req.query;
+    const { workspaceId } = req.params;
+    const { before } = req.query;
 
     const limit = parseInt(req.query.limit) || 20;
-    if(!workspaceId)
-    {
-      return res.status(400).json({message: "Invalid/Insufficient details"});
+    if (!workspaceId) {
+      return res.status(400).json({ message: "Invalid/Insufficient details" });
     }
     let conversationId = groupConversationIdCache.get(workspaceId);
 
     let conversation;
-    if(!conversationId) {
-       conversation = await Conversation.findOne({
-        workspaceId : workspaceId,
-        chatType: "group"
+    if (!conversationId) {
+      conversation = await Conversation.findOne({
+        workspaceId: workspaceId,
+        chatType: "group",
       });
 
-      if(!conversation)
-      {
-        return res.status(200).json({ messages: [], hasMore: false })
+      if (!conversation) {
+        return res.status(200).json({ messages: [], hasMore: false });
       }
 
       conversationId = conversation._id;
@@ -294,35 +315,35 @@ export const getGroupMessages = async(req,res) =>{
     return res
       .status(200)
       .json({ messages: messages, hasMore: messages.length === limit });
-
   } catch (error) {
-    return res.status(500).json({message:"Error fetching group messages"});
+    return res.status(500).json({ message: "Error fetching group messages" });
   }
-}
-
+};
 
 // new api for the frontend to get conversationId before calling the getMessage api.
 
-export const getDirectConversationId = async (req,res) => {
+export const getDirectConversationId = async (req, res) => {
   try {
-    const {workspaceId, recipientId} = req.params;
+    const { workspaceId, recipientId } = req.params;
     const senderId = req.user._id;
 
-    if(!workspaceId || !recipientId || !senderId)
-    {
-      return res.status(400).json({message:"Insufficient/invalid information provided"});
+    if (!workspaceId || !recipientId || !senderId) {
+      return res
+        .status(400)
+        .json({ message: "Insufficient/invalid information provided" });
     }
 
     const conversation = await Conversation.findOne({
       workspaceId: workspaceId,
       chatType: "direct",
-      participants: {$all : [senderId, recipientId]}
-    })
+      participants: { $all: [senderId, recipientId] },
+    });
 
-    res.status(200).json({conversationId : conversation ? conversation._id : null});
+    res
+      .status(200)
+      .json({ conversationId: conversation ? conversation._id : null });
   } catch (error) {
     console.error("Error fetching DM");
-    res.status(500).json({message:"Error fetching DM"});
+    res.status(500).json({ message: "Error fetching DM" });
   }
-}
-
+};

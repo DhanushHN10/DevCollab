@@ -8,11 +8,14 @@ import connectDB from "./config/db.js";
 import "./config/passport.js";
 import authRoutes from "./routes/api/authRoutes.js";
 
+import {
+  handleDirectMessage,
+  handleGroupMessage,
+} from "./controllers/chatController.js";
+import chatRoutes from "./routes/api/chatRoutes.js";
 import notificationRoutes from "./routes/api/notificationRoutes.js";
 import projectRoutes from "./routes/api/projectRoutes.js";
 import recommendationRoutes from "./routes/api/recommendationRoutes.js";
-import {handleGroupMessage, handleDirectMessage} from "./controllers/chatController.js";
-import chatRoutes from "./routes/api/chatRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 connectDB();
@@ -20,6 +23,7 @@ connectDB();
 import { createServer } from "http";
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
+import Workspace from "./models/Workspace.js";
 
 const allowedOrigins = ["http://localhost:5173", process.env.FRONTEND_URI];
 
@@ -34,7 +38,6 @@ app.use(
     },
   }),
 );
-
 
 app.use(passport.initialize());
 
@@ -80,40 +83,84 @@ io.on("connection", (socket) => {
   const userId = socket.data.userId;
   socket.join(`user:${userId}`);
 
-  socket.on("workspace:join", ({workspaceId}) => {
-    socket.join(`workspace:${workspaceId}`);
-    console.log(`User ${userId} joined workspace ${workspaceId}`);
+  const getMemberWorkspace = async (workspaceId) => {
+    if (!workspaceId) return null;
+
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      "members.user": userId,
+    })
+      .select("members project")
+      .lean();
+
+    return workspace;
+  };
+
+  socket.on("workspace:join", async ({ workspaceId }) => {
+    try {
+      const workspace = await getMemberWorkspace(workspaceId);
+      if (!workspace)
+        return socket.emit("workspace:error", {
+          message: "Workspace access denied",
+        });
+
+      socket.join(`workspace:${workspaceId}`);
+      console.log(`User ${userId} joined workspace ${workspaceId}`);
+    } catch (error) {
+      socket.emit("workspace:error", { message: "Unable to join workspace" });
+    }
   });
 
-  socket.on("workspace:leave", ({workspaceId}) =>{
+  socket.on("workspace:leave", ({ workspaceId }) => {
     socket.leave(`workspace:${workspaceId}`);
     console.log(`User ${userId} left workspace ${workspaceId}`);
   });
 
-  socket.on("workspace:message", async (payload) =>{
-
+  socket.on("workspace:message", async (payload) => {
     try {
-   
-       const groupMessage = await handleGroupMessage(payload);
+      const workspace = await getMemberWorkspace(payload.workspaceId);
+      if (!workspace) throw new Error("Workspace access denied");
 
-      io.to(`workspace:${payload.workspaceId}`).emit("workspace:message", groupMessage);
+      const groupMessage = await handleGroupMessage({
+        ...payload,
+        senderId: userId,
+        io,
+      });
 
+      io.to(`workspace:${payload.workspaceId}`).emit(
+        "workspace:message",
+        groupMessage,
+      );
     } catch (error) {
       socket.emit("workspace:error", { message: error.message });
     }
-   
   });
 
-  socket.on("workspace:dm:message", async (payload) =>{
+  socket.on("workspace:dm:message", async (payload) => {
     try {
-      const directMessage = await handleDirectMessage(payload);
-      io.to(`user:${payload.recipientId}`).emit("workspace:dm:message", directMessage);
+      const workspace = await getMemberWorkspace(payload.workspaceId);
+      if (!workspace) throw new Error("Workspace access denied");
+
+      const recipientIsMember = workspace.members.some(
+        (member) => member.user.toString() === payload.recipientId?.toString(),
+      );
+      if (!recipientIsMember)
+        throw new Error("Recipient is not a workspace member");
+
+      const directMessage = await handleDirectMessage({
+        ...payload,
+        senderId: userId,
+        io,
+      });
+      io.to(`user:${payload.recipientId}`).emit(
+        "workspace:dm:message",
+        directMessage,
+      );
 
       // to also send to other open tabs of the sender so that everywhere it gets updated and stays consistent as a socket layer functionality:
-      io.to(`user:${payload.senderId}`).emit("workspace:dm:message", directMessage);
-      
+      io.to(`user:${userId}`).emit("workspace:dm:message", directMessage);
     } catch (error) {
-    socket.emit("workspace:error", { message: error.message });
+      socket.emit("workspace:error", { message: error.message });
     }
   });
 
