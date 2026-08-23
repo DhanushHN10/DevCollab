@@ -1,5 +1,5 @@
 import Workspace from "../models/Workspace.js";
-import { addUserToGroupConversation} from "./chatController.js";
+import { addUserToGroupConversation, invalidateWorkspaceCache } from "./chatController.js";
 
 export const addUserToWorkSpace  = async(projectId, userId, role='Member') =>{
 
@@ -31,6 +31,13 @@ export const addUserToWorkSpace  = async(projectId, userId, role='Member') =>{
   // add user to group conversation
 
   await addUserToGroupConversation(workspace._id, userId);
+
+  // Invalidate cache so notification building uses fresh workspace data
+  try {
+    invalidateWorkspaceCache(workspace._id.toString());
+  } catch (err) {
+    console.error('Failed to invalidate workspace cache:', err);
+  }
 
     } catch (error) {
         console.error(error.message);

@@ -2,6 +2,7 @@ import express from "express";
 import {getMessages, getGroupMessages, getDirectConversationId} from "../../controllers/chatController.js";
 import {checkConversationAccess} from "../../middleware/checkConversationAccess.js";
 import {protect} from "../../middleware/protect.js";
+import {checkWorkspaceMembership} from "../../middleware/checkWorkspaceMembership.js";
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 
 router.get("/:conversationId/messages", protect, checkConversationAccess, getMessages);
 
-router.get("/workspace/:workspaceId/group/messages", protect, getGroupMessages);
+router.get("/workspace/:workspaceId/group/messages", protect, checkWorkspaceMembership, getGroupMessages);
 
 router.get("/workspace/:workspaceId/dm/:recipientId/id", protect, getDirectConversationId);
 

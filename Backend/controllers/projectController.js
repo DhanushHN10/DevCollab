@@ -8,7 +8,7 @@ import {
   sendProjectRequestToJoinEmail,
 } from "../services/emailService.js";
 import { sendNotification } from "../services/notificationServices.js";
-import { createGroupConversation } from "./chatController.js";
+import { createGroupConversation, invalidateWorkspaceCache } from "./chatController.js";
 import { addUserToWorkSpace } from "./workspaceController.js";
 export const createProject = async (req, res) => {
   // Creating Project, followed by workspace followed by Group Chat should be in a single transaction. One fails, complete roll back.
@@ -45,6 +45,13 @@ export const createProject = async (req, res) => {
     await workspace.save({ session });
 
     await createGroupConversation(workspace._id, req.user._id, session);
+
+    // Invalidate workspace cache (defensive) so subsequent operations see fresh data
+    try {
+      invalidateWorkspaceCache(workspace._id.toString());
+    } catch (err) {
+      console.error('Failed to invalidate workspace cache after create:', err);
+    }
 
     await session.commitTransaction();
 
